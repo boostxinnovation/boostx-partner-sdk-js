@@ -1,0 +1,4847 @@
+{
+	"group": "gidgp",
+	"cases": [
+		{
+			"name": "gidgp-gid-build-plain",
+			"rules": ["GID-01", "GID-02", "GID-13"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "u-1",
+				"bet": "b-1"
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"canonical": "{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\"}"
+				}
+			}
+		},
+		{
+			"name": "gidgp-gid-build-html-quote-backslash",
+			"rules": ["GID-03", "GID-39"],
+			"op": "gid.build",
+			"input": {
+				"partner": "a<b>&c",
+				"user": "u\"1\\",
+				"bet": "b \n"
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "a<b>&c",
+						"user": "u\"1\\",
+						"bet": "b \n"
+					},
+					"canonical": "{\"partner\":\"a<b>&c\",\"user\":\"u\\\"1\\\\\",\"bet\":\"b \\n\"}"
+				}
+			}
+		},
+		{
+			"name": "gidgp-gid-build-short-escapes",
+			"rules": ["GID-03", "GID-37"],
+			"op": "gid.build",
+			"input": {
+				"partner": "a\bb",
+				"user": "u\tv\nw",
+				"bet": "b\f\r"
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "a\bb",
+						"user": "u\tv\nw",
+						"bet": "b\f\r"
+					},
+					"canonical": "{\"partner\":\"a\\bb\",\"user\":\"u\\tv\\nw\",\"bet\":\"b\\f\\r\"}"
+				}
+			}
+		},
+		{
+			"name": "gidgp-gid-build-other-c0-lowercase-hex",
+			"rules": ["GID-03", "GID-37"],
+			"op": "gid.build",
+			"input": {
+				"partner": "a\u0000b",
+				"user": "u\u001b\u000b",
+				"bet": "b\u001f\u000e"
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "a\u0000b",
+						"user": "u\u001b\u000b",
+						"bet": "b\u001f\u000e"
+					},
+					"canonical": "{\"partner\":\"a\\u0000b\",\"user\":\"u\\u001b\\u000b\",\"bet\":\"b\\u001f\\u000e\"}"
+				}
+			},
+			"note": "Every C0 control without a short escape is written \\u00xx with lowercase hex digits."
+		},
+		{
+			"name": "gidgp-gid-build-control-u0001",
+			"rules": ["GID-02", "GID-39"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "u-1",
+				"bet": "b\u00011"
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b\u00011"
+					},
+					"canonical": "{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b\\u00011\"}"
+				}
+			},
+			"note": "U+0001 is a C0 control without a short escape: the canonical bytes carry the six characters \\u0001."
+		},
+		{
+			"name": "gidgp-gid-build-slash-del-c1-literal",
+			"rules": ["GID-03"],
+			"op": "gid.build",
+			"input": {
+				"partner": "a/b",
+				"user": "u",
+				"bet": "b ﻿"
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "a/b",
+						"user": "u",
+						"bet": "b ﻿"
+					},
+					"canonical": "{\"partner\":\"a/b\",\"user\":\"u\",\"bet\":\"b ﻿\"}"
+				}
+			},
+			"note": "/, U+007F, the C1 controls, U+00A0 and U+FEFF are written as themselves, never escaped."
+		},
+		{
+			"name": "gidgp-gid-build-line-separators-literal",
+			"rules": ["GID-03", "GID-37", "GID-39"],
+			"op": "gid.build",
+			"input": {
+				"partner": "a b",
+				"user": "u v",
+				"bet": "bet"
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "a b",
+						"user": "u v",
+						"bet": "bet"
+					},
+					"canonical": "{\"partner\":\"a b\",\"user\":\"u v\",\"bet\":\"bet\"}"
+				}
+			}
+		},
+		{
+			"name": "gidgp-gid-build-non-ascii-literal",
+			"rules": ["GID-03", "GID-39"],
+			"op": "gid.build",
+			"input": {
+				"partner": "акме",
+				"user": "Søren",
+				"bet": "賭け"
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "акме",
+						"user": "Søren",
+						"bet": "賭け"
+					},
+					"canonical": "{\"partner\":\"акме\",\"user\":\"Søren\",\"bet\":\"賭け\"}"
+				}
+			}
+		},
+		{
+			"name": "gidgp-gid-build-astral-literal",
+			"rules": ["GID-03", "GID-37", "GID-39"],
+			"op": "gid.build",
+			"input": {
+				"partner": "a😀b",
+				"user": "u😀",
+				"bet": "b𝄞"
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "a😀b",
+						"user": "u😀",
+						"bet": "b𝄞"
+					},
+					"canonical": "{\"partner\":\"a😀b\",\"user\":\"u😀\",\"bet\":\"b𝄞\"}"
+				}
+			}
+		},
+		{
+			"name": "gidgp-gid-build-docs-vector-ids",
+			"rules": ["GID-03", "GID-39"],
+			"op": "gid.build",
+			"input": {
+				"partner": "partner-xyz",
+				"user": "user/<42>&Søren",
+				"bet": "bet  \n1"
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "partner-xyz",
+						"user": "user/<42>&Søren",
+						"bet": "bet  \n1"
+					},
+					"canonical": "{\"partner\":\"partner-xyz\",\"user\":\"user/<42>&Søren\",\"bet\":\"bet  \\n1\"}"
+				}
+			},
+			"note": "The ids of the published signature test vector; canonical is its 72 bytes."
+		},
+		{
+			"name": "gidgp-gid-build-whitespace-kept",
+			"rules": ["GID-08", "GAMEPASS-07"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": " ",
+				"bet": " b-1 "
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": " ",
+						"bet": " b-1 "
+					},
+					"canonical": "{\"partner\":\"acme\",\"user\":\" \",\"bet\":\" b-1 \"}"
+				}
+			},
+			"note": "Ids are never trimmed: a whitespace-only or padded id builds and is signed as given."
+		},
+		{
+			"name": "gidgp-gid-build-unicode-not-normalized",
+			"rules": ["GID-08"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "é",
+				"bet": "é"
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "é",
+						"bet": "é"
+					},
+					"canonical": "{\"partner\":\"acme\",\"user\":\"é\",\"bet\":\"é\"}"
+				}
+			},
+			"note": "No Unicode normalization: the decomposed and the precomposed e-acute are signed as given."
+		},
+		{
+			"name": "gidgp-gid-build-colon-not-checked",
+			"rules": ["GID-10", "GAMEPASS-07"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "u:1",
+				"bet": "b:1:2"
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u:1",
+						"bet": "b:1:2"
+					},
+					"canonical": "{\"partner\":\"acme\",\"user\":\"u:1\",\"bet\":\"b:1:2\"}"
+				}
+			}
+		},
+		{
+			"name": "gidgp-gid-build-long-id",
+			"rules": ["GID-09"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "u-1",
+				"bet": "b-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+					},
+					"canonical": "{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"}"
+				}
+			},
+			"note": "No maximum id length."
+		},
+		{
+			"name": "gidgp-gid-build-other-key",
+			"rules": ["GID-13"],
+			"op": "gid.build",
+			"input": {
+				"key": "partner2",
+				"partner": "acme",
+				"user": "u-1",
+				"bet": "b-1"
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"canonical": "{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\"}"
+				}
+			}
+		},
+		{
+			"name": "gidgp-gid-build-key-null",
+			"rules": ["GID-34", "GID-36", "KEYS-19"],
+			"op": "gid.build",
+			"input": {
+				"key": null,
+				"partner": "acme",
+				"user": "u-1",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "gidgp-gid-build-key-unusable",
+			"rules": ["GID-36", "KEYS-19"],
+			"op": "gid.build",
+			"input": {
+				"key": "@unusable",
+				"partner": "acme",
+				"user": "u-1",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "gidgp-gid-build-order-key-before-empty-ids",
+			"rules": ["GID-34", "KEYS-19"],
+			"op": "gid.build",
+			"input": {
+				"key": null,
+				"partner": "",
+				"user": "",
+				"bet": ""
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "gidgp-gid-build-order-unusable-key-before-ill-formed-id",
+			"rules": ["GID-34", "KEYS-19"],
+			"needs": ["ill-formed-string"],
+			"op": "gid.build",
+			"input": {
+				"key": "@unusable",
+				"partner": "acme",
+				"user": {
+					"$illFormed": "u-"
+				},
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "gidgp-gid-build-partner-empty",
+			"rules": ["GID-07", "GAMEPASS-07"],
+			"op": "gid.build",
+			"input": {
+				"partner": "",
+				"user": "u-1",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-user-empty",
+			"rules": ["GID-07", "GAMEPASS-07"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-bet-empty",
+			"rules": ["GID-07", "GAMEPASS-07"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "u-1",
+				"bet": ""
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-partner-null",
+			"rules": ["GID-35", "GAMEPASS-34"],
+			"op": "gid.build",
+			"input": {
+				"partner": null,
+				"user": "u-1",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-bet-left-out",
+			"rules": ["GID-35", "GAMEPASS-34"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "u-1"
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-bet-number",
+			"rules": ["GID-35"],
+			"needs": ["untyped-string"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "u-1",
+				"bet": 42
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet"
+			},
+			"note": "A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gid-build-bet-number-zero",
+			"rules": ["GID-35"],
+			"needs": ["untyped-string"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "u-1",
+				"bet": 0
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet"
+			},
+			"note": "0 is a non-string, not an absent id. A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gid-build-user-boolean",
+			"rules": ["GID-35"],
+			"needs": ["untyped-string"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": false,
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "user"
+			},
+			"note": "A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gid-build-partner-ill-formed",
+			"rules": ["GID-04", "GID-05", "GAMEPASS-07"],
+			"needs": ["ill-formed-string"],
+			"op": "gid.build",
+			"input": {
+				"partner": {
+					"$illFormed": "p-"
+				},
+				"user": "u-1",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-user-ill-formed",
+			"rules": ["GID-04", "GID-05", "GAMEPASS-07"],
+			"needs": ["ill-formed-string"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": {
+					"$illFormed": "u-"
+				},
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-bet-ill-formed",
+			"rules": ["GID-04", "GID-05", "GAMEPASS-07"],
+			"needs": ["ill-formed-string"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "u-1",
+				"bet": {
+					"$illFormed": "b-"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-order-partner-before-user",
+			"rules": ["GID-34"],
+			"op": "gid.build",
+			"input": {
+				"partner": "",
+				"user": "",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-order-user-before-bet",
+			"rules": ["GID-34"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "",
+				"bet": null
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-order-presence-before-well-formedness",
+			"rules": ["GID-34"],
+			"needs": ["ill-formed-string"],
+			"op": "gid.build",
+			"input": {
+				"partner": {
+					"$illFormed": "a-"
+				},
+				"user": "u-1",
+				"bet": ""
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "bet"
+			},
+			"note": "Presence of all three ids is checked before the well-formedness of any."
+		},
+		{
+			"name": "gidgp-gid-build-order-well-formedness-partner-first",
+			"rules": ["GID-34"],
+			"needs": ["ill-formed-string"],
+			"op": "gid.build",
+			"input": {
+				"partner": {
+					"$illFormed": "a-"
+				},
+				"user": {
+					"$illFormed": "u-"
+				},
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-order-well-formedness-user-before-bet",
+			"rules": ["GID-34"],
+			"needs": ["ill-formed-string"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": {
+					"$illFormed": "u-"
+				},
+				"bet": {
+					"$illFormed": "b-"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-order-type-before-later-presence",
+			"rules": ["GID-34", "GID-35"],
+			"needs": ["untyped-string"],
+			"op": "gid.build",
+			"input": {
+				"partner": 7,
+				"user": "",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partner"
+			},
+			"note": "Presence and type are one step per id, partner first. A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gid-build-order-type-before-well-formedness",
+			"rules": ["GID-34", "GID-35"],
+			"needs": ["untyped-string", "ill-formed-string"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": {
+					"$illFormed": "u-"
+				},
+				"bet": 9
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet"
+			},
+			"note": "The bet's type (step 2) is checked before the user's well-formedness (step 3). A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gamepass-minimal",
+			"rules": [
+				"GAMEPASS-01",
+				"GAMEPASS-02",
+				"GAMEPASS-03",
+				"GAMEPASS-18",
+				"GID-14",
+				"GID-38",
+				"GAMEPASS-06",
+				"GAMEPASS-10"
+			],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"stake": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 2.5
+							}
+						},
+						"iat": "${now}"
+					},
+					"absent": [
+						"gamepass.xrange.min",
+						"gamepass.xrange.max",
+						"gamepass.xrange.decimals",
+						"gamepass.event",
+						"gamepass.demo",
+						"exp",
+						"nbf"
+					]
+				}
+			},
+			"note": "The SDK stamps iat itself and adds no exp or nbf. The implicit builder checks also verify the payload gid, which holds only for a canonical 86-character signature."
+		},
+		{
+			"name": "gidgp-gamepass-all-optional-set",
+			"rules": ["GAMEPASS-01", "GAMEPASS-23", "GAMEPASS-26", "GAMEPASS-29", "GAMEPASS-32"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xMin": 1.1,
+					"xMax": 200,
+					"xDecimals": 2,
+					"eventTitle": "Real Madrid vs Barcelona — Match Winner: Real Madrid",
+					"demo": true
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"stake": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 2.5,
+								"min": 1.1,
+								"max": 200,
+								"decimals": 2
+							},
+							"event": {
+								"title": "Real Madrid vs Barcelona — Match Winner: Real Madrid"
+							},
+							"demo": true
+						},
+						"iat": "${now}"
+					},
+					"absent": ["exp", "nbf"]
+				}
+			}
+		},
+		{
+			"name": "gidgp-gamepass-optional-null",
+			"rules": ["GAMEPASS-34"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xMin": null,
+					"xMax": null,
+					"xDecimals": null,
+					"eventTitle": null,
+					"demo": null
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"stake": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 2.5
+							}
+						},
+						"iat": "${now}"
+					},
+					"absent": [
+						"gamepass.xrange.min",
+						"gamepass.xrange.max",
+						"gamepass.xrange.decimals",
+						"gamepass.event",
+						"gamepass.demo"
+					]
+				}
+			},
+			"note": "null means absent: every optional parameter is left out of the token, never written as null."
+		},
+		{
+			"name": "gidgp-gamepass-optional-zero",
+			"rules": ["GAMEPASS-23", "GAMEPASS-25", "GAMEPASS-26", "GAMEPASS-29", "GAMEPASS-32", "GAMEPASS-34"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xMin": 0,
+					"xMax": 0,
+					"xDecimals": 0,
+					"eventTitle": "",
+					"demo": false
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"stake": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 2.5
+							}
+						},
+						"iat": "${now}"
+					},
+					"absent": [
+						"gamepass.xrange.min",
+						"gamepass.xrange.max",
+						"gamepass.xrange.decimals",
+						"gamepass.event",
+						"gamepass.demo"
+					]
+				}
+			},
+			"note": "0, the empty title and false all mean unset."
+		},
+		{
+			"name": "gidgp-gamepass-optional-negative-zero",
+			"rules": ["GAMEPASS-23", "GAMEPASS-26"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xMin": {
+						"$number": "-0"
+					},
+					"xMax": {
+						"$number": "-0"
+					},
+					"xDecimals": {
+						"$number": "-0"
+					}
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"stake": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 2.5
+							}
+						},
+						"iat": "${now}"
+					},
+					"absent": ["gamepass.xrange.min", "gamepass.xrange.max", "gamepass.xrange.decimals"]
+				}
+			},
+			"note": "-0 counts as 0, so the bounds and decimals are unset."
+		},
+		{
+			"name": "gidgp-gamepass-key-null",
+			"rules": ["GAMEPASS-08", "KEYS-19"],
+			"op": "gamepass.create",
+			"input": {
+				"key": null,
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "gidgp-gamepass-key-unusable",
+			"rules": ["GAMEPASS-08", "KEYS-19"],
+			"op": "gamepass.create",
+			"input": {
+				"key": "@unusable",
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "gidgp-gamepass-order-key-before-empty-params",
+			"rules": ["GAMEPASS-08", "GAMEPASS-48", "KEYS-19"],
+			"op": "gamepass.create",
+			"input": {
+				"key": null,
+				"params": {}
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "gidgp-gamepass-order-key-before-null-params",
+			"rules": ["GAMEPASS-08", "GAMEPASS-48", "KEYS-19"],
+			"needs": ["missing-params"],
+			"op": "gamepass.create",
+			"input": {
+				"key": null,
+				"params": null
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "A runner that cannot pass a null parameter set skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gamepass-order-unusable-key-before-params",
+			"rules": ["GAMEPASS-08", "KEYS-19"],
+			"op": "gamepass.create",
+			"input": {
+				"key": "@unusable",
+				"params": {
+					"partner": "",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 0,
+					"currency": "usd",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "gidgp-gamepass-params-null",
+			"rules": ["GAMEPASS-48"],
+			"needs": ["missing-params"],
+			"op": "gamepass.create",
+			"input": {
+				"params": null
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partner"
+			},
+			"note": "A missing parameter set reads as an empty one. A runner that cannot pass null skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gamepass-params-left-out",
+			"rules": ["GAMEPASS-48"],
+			"needs": ["missing-params"],
+			"op": "gamepass.create",
+			"input": {},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-params-not-object",
+			"rules": ["GAMEPASS-48"],
+			"needs": ["missing-params"],
+			"op": "gamepass.create",
+			"input": {
+				"params": 7
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partner"
+			},
+			"note": "A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gamepass-partner-empty",
+			"rules": ["GAMEPASS-07", "GAMEPASS-08"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-user-empty",
+			"rules": ["GAMEPASS-07", "GAMEPASS-08"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-bet-empty",
+			"rules": ["GAMEPASS-07", "GAMEPASS-08"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-user-null",
+			"rules": ["GAMEPASS-07", "GAMEPASS-34"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": null,
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-bet-left-out",
+			"rules": ["GAMEPASS-07", "GAMEPASS-34"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-bet-number",
+			"rules": ["GAMEPASS-07", "GID-35"],
+			"needs": ["untyped-string"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": 42,
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet"
+			},
+			"note": "A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gamepass-user-ill-formed",
+			"rules": ["GAMEPASS-07", "GID-04"],
+			"needs": ["ill-formed-string"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": {
+						"$illFormed": "u-"
+					},
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-colon-and-whitespace-ids",
+			"rules": ["GAMEPASS-07", "GID-08", "GID-10"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u:1",
+					"bet": " ",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u:1",
+								"bet": " "
+							},
+							"stake": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 2.5
+							}
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "':' and whitespace are not checked."
+		},
+		{
+			"name": "gidgp-gamepass-currency-left-out",
+			"rules": ["GAMEPASS-13", "GAMEPASS-14"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-currency-null",
+			"rules": ["GAMEPASS-14", "GAMEPASS-34"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": null,
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-currency-empty",
+			"rules": ["GAMEPASS-13", "GAMEPASS-14"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-currency-four-letters",
+			"rules": ["GAMEPASS-14"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USDT",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"stake": {
+								"amount": 12.5,
+								"currency": "USDT"
+							},
+							"xrange": {
+								"init": 2.5
+							}
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "gidgp-gamepass-currency-lowercase",
+			"rules": ["GAMEPASS-14", "GAMEPASS-15"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "usd",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			},
+			"note": "No case folding."
+		},
+		{
+			"name": "gidgp-gamepass-currency-mixed-case",
+			"rules": ["GAMEPASS-14", "GAMEPASS-15"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "Usd",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-currency-two-letters",
+			"rules": ["GAMEPASS-14", "GAMEPASS-15"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "US",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-currency-five-letters",
+			"rules": ["GAMEPASS-14", "GAMEPASS-15"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USDTX",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-currency-digit",
+			"rules": ["GAMEPASS-14", "GAMEPASS-15"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "US1",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-currency-non-ascii-letter",
+			"rules": ["GAMEPASS-14", "GAMEPASS-15", "GAMEPASS-47"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "uſd",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			},
+			"note": "U+017F upper-cases to S in some libraries; the rule is ASCII only."
+		},
+		{
+			"name": "gidgp-gamepass-currency-fullwidth",
+			"rules": ["GAMEPASS-14", "GAMEPASS-15", "GAMEPASS-47"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "ＵＳＤ",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-currency-leading-space",
+			"rules": ["GAMEPASS-14", "GAMEPASS-15"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": " USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			},
+			"note": "Never trimmed."
+		},
+		{
+			"name": "gidgp-gamepass-currency-trailing-newline",
+			"rules": ["GAMEPASS-14", "GAMEPASS-15"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD\n",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			},
+			"note": "A regex whose $ also matches before a final line feed would accept this."
+		},
+		{
+			"name": "gidgp-gamepass-currency-ill-formed",
+			"rules": ["GAMEPASS-14", "GAMEPASS-31"],
+			"needs": ["ill-formed-string"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": {
+						"$illFormed": "USD"
+					},
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-currency-number",
+			"rules": ["GAMEPASS-14"],
+			"needs": ["untyped-string"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": 840,
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			},
+			"note": "A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gamepass-amount-minimum",
+			"rules": ["GAMEPASS-11"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 0.01,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"stake": {
+								"amount": 0.01,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 2.5
+							}
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "The minimum stake is 0.01 in every currency."
+		},
+		{
+			"name": "gidgp-gamepass-amount-just-below-minimum",
+			"rules": ["GAMEPASS-11"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 0.009999999999999998,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			},
+			"note": "The largest double below 0.01: amount >= 0.01 is compared as doubles."
+		},
+		{
+			"name": "gidgp-gamepass-amount-zero",
+			"rules": ["GAMEPASS-11"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 0,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-amount-negative-zero",
+			"rules": ["GAMEPASS-11"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": {
+						"$number": "-0"
+					},
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-amount-negative",
+			"rules": ["GAMEPASS-11"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": -12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-amount-nan",
+			"rules": ["GAMEPASS-11"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": {
+						"$number": "NaN"
+					},
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-amount-infinity",
+			"rules": ["GAMEPASS-11"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": {
+						"$number": "Infinity"
+					},
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-amount-negative-infinity",
+			"rules": ["GAMEPASS-11"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": {
+						"$number": "-Infinity"
+					},
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-amount-tiny",
+			"rules": ["GAMEPASS-11"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 1e-308,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-amount-left-out",
+			"rules": ["GAMEPASS-11", "GAMEPASS-34"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-amount-null",
+			"rules": ["GAMEPASS-11", "GAMEPASS-34"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": null,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-amount-string",
+			"rules": ["GAMEPASS-11"],
+			"needs": ["untyped-number"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": "12.5",
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			},
+			"note": "A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gamepass-amount-largest-double",
+			"rules": ["GAMEPASS-12"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 1.7976931348623157e308,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"stake": {
+								"amount": 1.7976931348623157e308,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 2.5
+							}
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "No upper bound."
+		},
+		{
+			"name": "gidgp-gamepass-amount-sent-unchanged",
+			"rules": ["GAMEPASS-12"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 0.30000000000000004,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"stake": {
+								"amount": 0.30000000000000004,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 2.5
+							}
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "No rounding: the same double is sent."
+		},
+		{
+			"name": "gidgp-gamepass-x-zero",
+			"rules": ["GAMEPASS-19"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 0
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "x"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-x-negative-zero",
+			"rules": ["GAMEPASS-19"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": {
+						"$number": "-0"
+					}
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "x"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-x-negative",
+			"rules": ["GAMEPASS-19"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": -2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "x"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-x-nan",
+			"rules": ["GAMEPASS-19"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": {
+						"$number": "NaN"
+					}
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "x"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-x-infinity",
+			"rules": ["GAMEPASS-19"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": {
+						"$number": "Infinity"
+					}
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "x"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-x-left-out",
+			"rules": ["GAMEPASS-19", "GAMEPASS-34"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "x"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-x-null",
+			"rules": ["GAMEPASS-19", "GAMEPASS-34"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": null
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "x"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-x-string",
+			"rules": ["GAMEPASS-19"],
+			"needs": ["untyped-number"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": "2.5"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "x"
+			},
+			"note": "A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gamepass-x-no-range-check",
+			"rules": ["GAMEPASS-19", "GAMEPASS-24"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 0.5,
+					"xMin": 5,
+					"xMax": 2
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"stake": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 0.5,
+								"min": 5,
+								"max": 2
+							}
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "The [1.1, 200] ranges and xMin < xMax are left to BoostX."
+		},
+		{
+			"name": "gidgp-gamepass-x-smallest-positive",
+			"rules": ["GAMEPASS-19"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 5e-324
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"stake": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 5e-324
+							}
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "gidgp-gamepass-x-not-floored",
+			"rules": ["GAMEPASS-18"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 1.857,
+					"xDecimals": 2
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"stake": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 1.857,
+								"decimals": 2
+							}
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "init is the x parameter as given; BoostX does the flooring."
+		},
+		{
+			"name": "gidgp-gamepass-xmin-negative",
+			"rules": ["GAMEPASS-24"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xMin": -1.1
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xmin"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-xmin-nan",
+			"rules": ["GAMEPASS-24"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xMin": {
+						"$number": "NaN"
+					}
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xmin"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-xmin-infinity",
+			"rules": ["GAMEPASS-24"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xMin": {
+						"$number": "Infinity"
+					}
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xmin"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-xmax-negative",
+			"rules": ["GAMEPASS-24"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xMax": -200
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xmax"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-xmax-nan",
+			"rules": ["GAMEPASS-24"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xMax": {
+						"$number": "NaN"
+					}
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xmax"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-xmax-negative-infinity",
+			"rules": ["GAMEPASS-24"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xMax": {
+						"$number": "-Infinity"
+					}
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xmax"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-xmin-string",
+			"rules": ["GAMEPASS-24"],
+			"needs": ["untyped-number"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xMin": "1.5"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xmin"
+			},
+			"note": "A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gamepass-xmin-xmax-sent-unchecked",
+			"rules": ["GAMEPASS-24"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xMin": 0.5,
+					"xMax": 1e300
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"stake": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 2.5,
+								"min": 0.5,
+								"max": 1e300
+							}
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "gidgp-gamepass-xdecimals-one",
+			"rules": ["GAMEPASS-26"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xDecimals": 1
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xdecimals"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-xdecimals-seven",
+			"rules": ["GAMEPASS-26"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xDecimals": 7
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xdecimals"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-xdecimals-negative",
+			"rules": ["GAMEPASS-26"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xDecimals": -2
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xdecimals"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-xdecimals-fraction",
+			"rules": ["GAMEPASS-26"],
+			"needs": ["fixed-int"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xDecimals": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xdecimals"
+			},
+			"note": "A runner whose decimals parameter is an integer skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gamepass-xdecimals-nan",
+			"rules": ["GAMEPASS-26"],
+			"needs": ["non-finite"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xDecimals": {
+						"$number": "NaN"
+					}
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xdecimals"
+			},
+			"note": "A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gamepass-xdecimals-string",
+			"rules": ["GAMEPASS-26"],
+			"needs": ["untyped-number"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xDecimals": "3"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xdecimals"
+			},
+			"note": "A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gamepass-xdecimals-two",
+			"rules": ["GAMEPASS-26"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xDecimals": 2
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"stake": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 2.5,
+								"decimals": 2
+							}
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "gidgp-gamepass-xdecimals-six",
+			"rules": ["GAMEPASS-26"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xDecimals": 6
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"stake": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 2.5,
+								"decimals": 6
+							}
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "gidgp-gamepass-event-title-whitespace-sent",
+			"rules": ["GAMEPASS-29"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"eventTitle": " "
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"stake": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 2.5
+							},
+							"event": {
+								"title": " "
+							}
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "Only the empty title is unset; whitespace is a title."
+		},
+		{
+			"name": "gidgp-gamepass-event-title-sent-exactly",
+			"rules": ["GAMEPASS-30", "GID-38"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"eventTitle": "  Real  Madrid\tvs Barça 🏆 é <b>&amp;</b>   end "
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"stake": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 2.5
+							},
+							"event": {
+								"title": "  Real  Madrid\tvs Barça 🏆 é <b>&amp;</b>   end "
+							}
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "Not trimmed, normalized or escaped away: the decoded title equals the parameter."
+		},
+		{
+			"name": "gidgp-gamepass-event-title-long",
+			"rules": ["GAMEPASS-30"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"eventTitle": "Final ababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"stake": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 2.5
+							},
+							"event": {
+								"title": "Final ababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab"
+							}
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "No length limit and no cap at 256 characters."
+		},
+		{
+			"name": "gidgp-gamepass-event-title-ill-formed-replaced",
+			"rules": ["GAMEPASS-31"],
+			"needs": ["ill-formed-string"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"eventTitle": {
+						"$illFormed": "Match "
+					}
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"stake": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 2.5
+							},
+							"event": {
+								"title": "Match �"
+							}
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "The one ill-formed unit becomes one U+FFFD and the token is still issued."
+		},
+		{
+			"name": "gidgp-gamepass-event-title-number",
+			"rules": ["GAMEPASS-08", "GAMEPASS-29"],
+			"needs": ["untyped-string"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"eventTitle": 5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "eventTitle"
+			},
+			"note": "A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gamepass-demo-string",
+			"rules": ["GAMEPASS-08", "GAMEPASS-32"],
+			"needs": ["untyped-bool"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"demo": "true"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "demo"
+			},
+			"note": "A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gamepass-demo-number",
+			"rules": ["GAMEPASS-08", "GAMEPASS-32"],
+			"needs": ["untyped-bool"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"demo": 1
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "demo"
+			},
+			"note": "A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gamepass-demo-true",
+			"rules": ["GAMEPASS-32"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"demo": true
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"stake": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 2.5
+							},
+							"demo": true
+						},
+						"iat": "${now}"
+					},
+					"absent": ["gamepass.event"]
+				}
+			}
+		},
+		{
+			"name": "gidgp-gamepass-order-ids-before-currency",
+			"rules": ["GAMEPASS-08", "GAMEPASS-09"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-order-bet-before-amount",
+			"rules": ["GAMEPASS-08", "GAMEPASS-09"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "",
+					"amount": 0,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-order-user-before-bet",
+			"rules": ["GAMEPASS-08", "GAMEPASS-09"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "",
+					"bet": "",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-order-currency-presence-before-amount",
+			"rules": ["GAMEPASS-08", "GAMEPASS-09"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 0,
+					"currency": "",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-order-currency-shape-before-amount",
+			"rules": ["GAMEPASS-08", "GAMEPASS-09"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 0,
+					"currency": "usd",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-order-amount-before-x",
+			"rules": ["GAMEPASS-08", "GAMEPASS-09"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 0,
+					"currency": "USD",
+					"x": 0
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-order-x-before-xmin",
+			"rules": ["GAMEPASS-08", "GAMEPASS-09"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 0,
+					"xMin": -1
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "x"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-order-xmin-before-xmax",
+			"rules": ["GAMEPASS-08", "GAMEPASS-09"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xMin": -1,
+					"xMax": -1
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xmin"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-order-xmax-before-xdecimals",
+			"rules": ["GAMEPASS-08", "GAMEPASS-09"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xMax": -1,
+					"xDecimals": 7
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xmax"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-order-xdecimals-before-ill-formed-id",
+			"rules": ["GAMEPASS-08", "GAMEPASS-09"],
+			"needs": ["ill-formed-string"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": {
+						"$illFormed": "u-"
+					},
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xDecimals": 7
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xdecimals"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-order-xdecimals-before-event-title-type",
+			"rules": ["GAMEPASS-08", "GAMEPASS-09"],
+			"needs": ["untyped-string"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"xDecimals": 7,
+					"eventTitle": 5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xdecimals"
+			},
+			"note": "A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gamepass-order-event-title-type-before-demo-type",
+			"rules": ["GAMEPASS-08", "GAMEPASS-09"],
+			"needs": ["untyped-string"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"eventTitle": 5,
+					"demo": "yes"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "eventTitle"
+			},
+			"note": "A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gamepass-order-demo-type-before-ill-formed-id",
+			"rules": ["GAMEPASS-08", "GAMEPASS-09"],
+			"needs": ["untyped-bool", "ill-formed-string"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": {
+						"$illFormed": "u-"
+					},
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5,
+					"demo": "yes"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "demo"
+			},
+			"note": "A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gamepass-order-currency-before-ill-formed-id",
+			"rules": ["GAMEPASS-08", "GAMEPASS-09"],
+			"needs": ["ill-formed-string"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": {
+						"$illFormed": "a-"
+					},
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "usd",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-order-amount-before-ill-formed-id",
+			"rules": ["GAMEPASS-08", "GAMEPASS-09"],
+			"needs": ["ill-formed-string"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": {
+						"$illFormed": "b-"
+					},
+					"amount": 0,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-order-presence-before-ill-formed-id",
+			"rules": ["GAMEPASS-08", "GAMEPASS-09"],
+			"needs": ["ill-formed-string"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": {
+						"$illFormed": "a-"
+					},
+					"user": "u-1",
+					"bet": "",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-order-ill-formed-partner-before-user",
+			"rules": ["GAMEPASS-08", "GAMEPASS-09"],
+			"needs": ["ill-formed-string"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": {
+						"$illFormed": "a-"
+					},
+					"user": {
+						"$illFormed": "u-"
+					},
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-order-id-type-before-later-presence",
+			"rules": ["GAMEPASS-08", "GAMEPASS-09"],
+			"needs": ["untyped-string"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": 7,
+					"user": "",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partner"
+			},
+			"note": "A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gamepass-order-id-type-before-ill-formed-id",
+			"rules": ["GAMEPASS-08", "GAMEPASS-09"],
+			"needs": ["untyped-string", "ill-formed-string"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": {
+						"$illFormed": "u-"
+					},
+					"bet": 9,
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet"
+			},
+			"note": "A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-verify-accepted",
+			"rules": ["GID-13", "GID-16", "GID-22", "GID-40"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"iat": "${now-60}"
+				}
+			}
+		},
+		{
+			"name": "gidgp-verify-rotation-later-key",
+			"rules": ["GID-20"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-60}}"
+				},
+				"partnerKeys": ["partner2", "partner"]
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"iat": "${now-60}"
+				}
+			},
+			"note": "The GID passes when any listed key verifies it, whatever its position."
+		},
+		{
+			"name": "gidgp-verify-rotation-first-key",
+			"rules": ["GID-20"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid:gid2}},\"iat\":${now-60}}"
+				},
+				"partnerKeys": ["partner2", "partner"]
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid2}"
+					},
+					"iat": "${now-60}"
+				}
+			}
+		},
+		{
+			"name": "gidgp-verify-unusable-key-skipped",
+			"rules": ["GID-24", "GID-45", "KEYS-63"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-60}}"
+				},
+				"partnerKeys": ["@unusable", "partner"]
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"iat": "${now-60}"
+				}
+			}
+		},
+		{
+			"name": "gidgp-verify-null-key-skipped",
+			"rules": ["GID-24", "GID-45"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-60}}"
+				},
+				"partnerKeys": [null, "partner"]
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"iat": "${now-60}"
+				}
+			}
+		},
+		{
+			"name": "gidgp-verify-no-usable-partner-key",
+			"rules": ["GID-25", "GID-45", "KEYS-46", "INBOUND-31"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-60}}"
+				},
+				"partnerKeys": ["@unusable"]
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			},
+			"note": "A key fault, not a token fault: no token category."
+		},
+		{
+			"name": "gidgp-verify-empty-partner-key-list",
+			"rules": ["GID-23", "GID-25", "INBOUND-31"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-60}}"
+				},
+				"partnerKeys": []
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "gidgp-verify-order-keys-before-malformed-token",
+			"rules": ["GID-25", "KEYS-46", "INBOUND-31", "INBOUND-32"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"raw": "not-a-token"
+				},
+				"partnerKeys": ["@unusable"]
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "gidgp-verify-order-keys-before-bad-gid-signature",
+			"rules": ["GID-25", "INBOUND-32"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw==\"}},\"iat\":${now-60}}"
+				},
+				"partnerKeys": []
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "gidgp-verify-unusable-boostx-key",
+			"rules": ["GID-25", "INBOUND-59"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-60}}"
+				},
+				"boostxKey": "@unusable"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "gidgp-verify-unusable-and-refusing-keys",
+			"rules": ["GID-18", "GID-24"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-60}}"
+				},
+				"partnerKeys": ["@unusable", "partner2"]
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
+			},
+			"note": "One unusable key and one usable key that refuses: a signature failure, not a key error."
+		},
+		{
+			"name": "gidgp-verify-wrong-partner-key",
+			"rules": ["GID-18", "HTTP-55"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-60}}"
+				},
+				"partnerKeys": ["partner2"]
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "gidgp-verify-signature-over-other-ids",
+			"rules": ["GID-02", "GID-18"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:b2}\"}},\"iat\":${now-60}}"
+				}
+			},
+			"sigs": {
+				"b2": {
+					"key": "partner",
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-2"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
+			},
+			"note": "The signature covers bet b-2; the canonical bytes are rebuilt from the received b-1."
+		},
+		{
+			"name": "gidgp-verify-high-s-accepted",
+			"rules": ["GID-15"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:s2}\"}},\"iat\":${now-60}}"
+				}
+			},
+			"sigs": {
+				"s2": {
+					"fixed": "Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ38Ex4gD0PoF89ZpwZ8ldEtRdSjpIMAb2i6QiWU9e4qmg"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:s2}"
+					},
+					"iat": "${now-60}"
+				}
+			},
+			"note": "The fixed signature with s replaced by n - s: both forms of a valid signature verify."
+		},
+		{
+			"name": "gidgp-verify-zero-signature",
+			"rules": ["GID-16", "GID-18"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
+			},
+			"note": "Canonical form, 64 zero bytes."
+		},
+		{
+			"name": "gidgp-verify-flipped-signature",
+			"rules": ["GID-18"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"QNck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
+			},
+			"note": "Canonical form, wrong signature."
+		},
+		{
+			"name": "gidgp-verify-signature-padded",
+			"rules": ["GID-16", "GID-17", "KEYS-47", "INBOUND-26", "HTTP-55"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw==\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
+			},
+			"note": "'=' padding on the right 64 bytes."
+		},
+		{
+			"name": "gidgp-verify-signature-std-alphabet",
+			"rules": ["GID-16", "GID-17", "KEYS-47", "INBOUND-26", "HTTP-55"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX/ak+emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
+			},
+			"note": "The standard alphabet, same 64 bytes."
+		},
+		{
+			"name": "gidgp-verify-signature-trailing-bits",
+			"rules": ["GID-16", "GID-17", "KEYS-47", "INBOUND-26", "HTTP-55"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tx\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
+			},
+			"note": "A non-zero unused bit in the last character; lenient decoders read the same 64 bytes."
+		},
+		{
+			"name": "gidgp-verify-signature-space-inside",
+			"rules": ["GID-16", "GID-17", "KEYS-47", "INBOUND-26", "HTTP-55"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0 D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "gidgp-verify-signature-line-feed-inside",
+			"rules": ["GID-16", "GID-17", "KEYS-47", "INBOUND-26", "HTTP-55"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0\\nD7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
+			},
+			"note": "A JSON-escaped line feed inside the decoded value."
+		},
+		{
+			"name": "gidgp-verify-signature-crlf-appended",
+			"rules": ["GID-16", "GID-17", "KEYS-47", "INBOUND-26", "HTTP-55"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw\\r\\n\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "gidgp-verify-signature-85-characters",
+			"rules": ["GID-16", "GID-17", "KEYS-47", "INBOUND-26", "HTTP-55"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6t\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "gidgp-verify-signature-87-characters",
+			"rules": ["GID-16", "GID-17", "KEYS-47", "INBOUND-26", "HTTP-55"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6twA\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "gidgp-verify-signature-84-characters",
+			"rules": ["GID-16", "GID-17", "KEYS-47", "INBOUND-26", "HTTP-55"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
+			},
+			"note": "A length that is a multiple of 4: decodes cleanly to 63 bytes."
+		},
+		{
+			"name": "gidgp-verify-signature-88-characters",
+			"rules": ["GID-16", "GID-17", "KEYS-47", "INBOUND-26", "HTTP-55"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6twAA\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
+			},
+			"note": "Decodes cleanly to 66 bytes."
+		},
+		{
+			"name": "gidgp-verify-signature-empty",
+			"rules": ["GID-16", "GID-17", "KEYS-47", "INBOUND-26", "HTTP-55"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "gidgp-verify-signature-der",
+			"rules": ["GID-16", "GID-17", "KEYS-47", "INBOUND-26", "HTTP-55"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"MEQCIEHXJPCYF_2pPnpo3hFbj14UqCeFJH430j2VrhDWVG0NAiAD7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
+			},
+			"note": "The same r and s DER-encoded, the common encoding mistake."
+		},
+		{
+			"name": "gidgp-verify-signature-json-escaped-accepted",
+			"rules": ["GID-47"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"\\u0051dck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"iat": "${now-60}"
+				}
+			},
+			"note": "The form check applies to the decoded value: an escaped Q is still the canonical signature."
+		},
+		{
+			"name": "gidgp-verify-escaped-ids-accepted",
+			"rules": ["GID-38", "GID-47"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u\\u003c1\\u0026\",\"bet\":\"b-1\",\"signature\":\"${sig:esc}\"}},\"iat\":${now-60}}"
+				}
+			},
+			"sigs": {
+				"esc": {
+					"key": "partner",
+					"partner": "acme",
+					"user": "u<1&",
+					"bet": "b-1"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u<1&",
+						"bet": "b-1",
+						"signature": "${sig:esc}"
+					},
+					"iat": "${now-60}"
+				}
+			},
+			"note": "The canonical bytes are rebuilt from the decoded user u<1&, whatever escapes carried it."
+		},
+		{
+			"name": "gidgp-verify-members-reordered",
+			"rules": ["GID-02", "GID-38"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{ \"signature\" : \"${sig:gid}\", \"bet\": \"b-1\", \"user\": \"u-1\", \"partner\": \"acme\" }},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"iat": "${now-60}"
+				}
+			},
+			"note": "Received member order and whitespace play no part: the canonical bytes are rebuilt."
+		},
+		{
+			"name": "gidgp-verify-surrogate-pair-escape-accepted",
+			"rules": ["GID-04", "GID-37"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u\\ud83d\\ude00\",\"bet\":\"b-1\",\"signature\":\"${sig:astral}\"}},\"iat\":${now-60}}"
+				}
+			},
+			"sigs": {
+				"astral": {
+					"key": "partner",
+					"partner": "acme",
+					"user": "u😀",
+					"bet": "b-1"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u😀",
+						"bet": "b-1",
+						"signature": "${sig:astral}"
+					},
+					"iat": "${now-60}"
+				}
+			},
+			"note": "A high-then-low surrogate pair escape is one well-formed character."
+		},
+		{
+			"name": "gidgp-verify-lone-high-surrogate",
+			"rules": ["GID-04", "KEYS-37", "INBOUND-28"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"\\ud800\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			},
+			"note": "A malformed token, never verified as a GID."
+		},
+		{
+			"name": "gidgp-verify-lone-low-surrogate-uppercase",
+			"rules": ["GID-04", "KEYS-37", "INBOUND-28"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u\\uDC00\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			}
+		},
+		{
+			"name": "gidgp-verify-reversed-surrogate-pair",
+			"rules": ["GID-04", "KEYS-37", "INBOUND-28"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u\\ude00\\ud83d\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			},
+			"note": "Low then high is not a pair."
+		},
+		{
+			"name": "gidgp-verify-lone-surrogate-in-unknown-member",
+			"rules": ["GID-04", "KEYS-37", "INBOUND-28"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\",\"note\":\"\\ud800\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			},
+			"note": "The rule is on the JSON text, so an ignored member counts too."
+		},
+		{
+			"name": "gidgp-extract-lone-surrogate",
+			"rules": ["GID-04", "KEYS-37", "INBOUND-28", "GID-33"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"\\ud800\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			}
+		},
+		{
+			"name": "gidgp-verify-invalid-utf8-in-user",
+			"rules": ["GID-06", "KEYS-35"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u${hex:ff}\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			}
+		},
+		{
+			"name": "gidgp-extract-invalid-utf8-in-user",
+			"rules": ["GID-06", "GID-33"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u${hex:c0af}\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			}
+		},
+		{
+			"name": "gidgp-verify-gid-absent",
+			"rules": ["GID-27", "INBOUND-17"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "missing_claim"],
+				"field": "gid"
+			}
+		},
+		{
+			"name": "gidgp-verify-gid-null",
+			"rules": ["GID-27", "INBOUND-17"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":null},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid"]
+			}
+		},
+		{
+			"name": "gidgp-verify-gid-string",
+			"rules": ["GID-27", "INBOUND-17"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":\"acme:u-1:b-1\"},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid"]
+			}
+		},
+		{
+			"name": "gidgp-verify-gid-array",
+			"rules": ["GID-27", "INBOUND-17"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":[\"acme\",\"u-1\",\"b-1\",\"${sig:gid}\"]},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid"]
+			}
+		},
+		{
+			"name": "gidgp-verify-gid-number",
+			"rules": ["GID-27", "INBOUND-17"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":7},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid"]
+			}
+		},
+		{
+			"name": "gidgp-verify-gid-user-null",
+			"rules": ["GID-27", "INBOUND-17"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":null,\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid"]
+			}
+		},
+		{
+			"name": "gidgp-verify-gid-signature-missing",
+			"rules": ["GID-27", "INBOUND-17"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid"]
+			}
+		},
+		{
+			"name": "gidgp-verify-gid-bet-number",
+			"rules": ["GID-27", "INBOUND-17"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":7,\"signature\":\"${sig:gid}\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid"]
+			}
+		},
+		{
+			"name": "gidgp-verify-gid-partner-empty",
+			"rules": ["GID-27", "GID-31"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "missing_claim"],
+				"field": "gid.partner"
+			}
+		},
+		{
+			"name": "gidgp-extract-gid-partner-empty",
+			"rules": ["GID-31", "GID-33"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "missing_claim"],
+				"field": "gid.partner"
+			}
+		},
+		{
+			"name": "gidgp-extract-gid-signature-missing",
+			"rules": ["GID-27", "GID-33", "INBOUND-21"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid"]
+			}
+		},
+		{
+			"name": "gidgp-extract-gid-signature-not-verified",
+			"rules": ["GID-33", "INBOUND-17", "INBOUND-21"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			},
+			"note": "Extraction checks the gid shape only; the signature, empty here, is examined when parsing."
+		},
+		{
+			"name": "gidgp-verify-gid-name-case-folded",
+			"rules": ["GID-28", "KEYS-34"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"GID\":${gid}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "missing_claim"],
+				"field": "gid"
+			}
+		},
+		{
+			"name": "gidgp-verify-gid-member-names-case-folded",
+			"rules": ["GID-28"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"PARTNER\":\"acme\",\"User\":\"u-1\",\"BET\":\"b-1\",\"Signature\":\"${sig:gid}\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid"]
+			}
+		},
+		{
+			"name": "gidgp-verify-gid-exact-name-wins",
+			"rules": ["GID-28"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"PARTNER\":\"zeta\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"iat": "${now-60}"
+				}
+			},
+			"note": "A case variant of a member name is an unknown member and never overrides the exact one."
+		},
+		{
+			"name": "gidgp-verify-gid-unknown-member-ignored",
+			"rules": ["GID-29"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\",\"extra\":{\"a\":[1,null]}}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"iat": "${now-60}"
+				}
+			}
+		},
+		{
+			"name": "gidgp-verify-gid-duplicate-member-last-wins",
+			"rules": ["GID-30", "KEYS-33"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"zzz\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\",\"user\":\"u-1\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"iat": "${now-60}"
+				}
+			}
+		},
+		{
+			"name": "gidgp-verify-gid-duplicate-member-last-wins-refused",
+			"rules": ["GID-30", "KEYS-33"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\",\"user\":\"zzz\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
+			},
+			"note": "The last user, zzz, is the one verified, and the signature covers u-1."
+		},
+		{
+			"name": "gidgp-verify-empty-user-verified",
+			"rules": ["GID-32", "INBOUND-17"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"\",\"bet\":\"b-1\",\"signature\":\"${sig:empty}\"}},\"iat\":${now-60}}"
+				}
+			},
+			"sigs": {
+				"empty": {
+					"key": "partner",
+					"text": "{\"partner\":\"acme\",\"user\":\"\",\"bet\":\"b-1\"}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "",
+						"bet": "b-1",
+						"signature": "${sig:empty}"
+					},
+					"iat": "${now-60}"
+				}
+			},
+			"note": "An inbound empty user passes the shape check and is verified over the empty value."
+		},
+		{
+			"name": "gidgp-verify-outer-signature-failure-without-gid",
+			"rules": ["GID-19"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-60}}",
+					"key": "other"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_signature"]
+			},
+			"note": "A token signed by the wrong key: invalid_signature without invalid_gid."
+		},
+		{
+			"name": "gidgp-verify-order-outer-signature-before-gid-signature",
+			"rules": ["GID-19", "GID-46", "INBOUND-32"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw==\"}},\"iat\":${now-60}}",
+					"key": "other"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_signature"]
+			}
+		},
+		{
+			"name": "gidgp-verify-order-claims-before-gid-signature",
+			"rules": ["GID-46", "INBOUND-32"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"}}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "missing_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "gidgp-verify-order-gid-shape-before-gid-signature",
+			"rules": ["GID-27", "GID-46", "INBOUND-32"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":7,\"signature\":\"Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw==\"}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid"]
+			},
+			"note": "The shape fault is reported alone, without invalid_signature."
+		},
+		{
+			"name": "gidgp-keystore-partner-key-list-with-unusable",
+			"rules": ["GID-26", "KEYS-57", "HTTP-58"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"partnerPublicKey": ["partner", "@unusable"],
+				"partnerPrivateKey": "partner",
+				"boostxPublicKey": "boostx"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "gidgp-keystore-single-unusable-partner-key",
+			"rules": ["GID-26", "KEYS-57"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"partnerPublicKey": "@unusable",
+				"partnerPrivateKey": "partner",
+				"boostxPublicKey": "boostx"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "gidgp-keystore-partner-key-list",
+			"rules": ["GID-20", "GID-26"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"partnerPublicKey": ["partner", "partner2"],
+				"partnerPrivateKey": "partner",
+				"boostxPublicKey": "boostx",
+				"lookups": [
+					{
+						"method": "partnerPublicKeys",
+						"partner": "acme",
+						"want": {
+							"ok": {
+								"keys": ["partner", "partner2"]
+							}
+						}
+					}
+				]
+			},
+			"want": {
+				"ok": {}
+			}
+		},
+		{
+			"name": "gidgp-keystore-partner-key-null-fails-at-lookup",
+			"rules": ["GID-26", "KEYS-57", "HTTP-58"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"partnerPublicKey": null,
+				"partnerPrivateKey": "partner",
+				"boostxPublicKey": "boostx",
+				"lookups": [
+					{
+						"method": "partnerPublicKeys",
+						"partner": "acme",
+						"want": {
+							"error": ["invalid_public_key"]
+						}
+					}
+				]
+			},
+			"want": {
+				"ok": {}
+			},
+			"note": "null means the role is not given: registration succeeds and the lookup fails."
+		},
+		{
+			"name": "gidgp-http-check-bet-gid-always-verified",
+			"rules": ["GID-40", "GID-18"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "check-bet",
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid:gid2}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"error": "invalid checkbet token",
+				"keyStoreCalled": true,
+				"betStoreCalled": false
+			},
+			"note": "The GID is signed by partner2, which the store does not list for acme."
+		},
+		{
+			"name": "gidgp-http-check-bet-receives-verified-gid",
+			"rules": ["GID-22", "GID-41"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "check-bet",
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-60}}"
+				}
+			},
+			"want": {
+				"status": 200,
+				"checkBetArg": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"signature": "${sig:gid}"
+				},
+				"betStoreCalled": true
+			}
+		},
+		{
+			"name": "gidgp-http-unknown-partner-id-quoted",
+			"rules": ["GID-44", "HTTP-24"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "check-bet",
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid:zq}},\"iat\":${now-60}}"
+				}
+			},
+			"sigs": {
+				"zq": {
+					"key": "partner",
+					"partner": "z\"q",
+					"user": "u-1",
+					"bet": "b-1"
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "unknown partner \"z",
+				"keyStoreCalled": true,
+				"betStoreCalled": false
+			},
+			"note": "The id is written between double quotes; how the quote inside it is escaped is free."
+		},
+		{
+			"name": "gidgp-x-floor-round15",
+			"rules": ["GAMEPASS-38"],
+			"op": "x.floor",
+			"input": {
+				"x": 1.13,
+				"decimals": 2
+			},
+			"want": {
+				"ok": {
+					"value": 1.13
+				}
+			},
+			"note": "1.13 × 100 is 112.99999999999999 as a double; rounding to 15 significant digits first gives 113."
+		},
+		{
+			"name": "gidgp-x-floor-round15-second",
+			"rules": ["GAMEPASS-38"],
+			"op": "x.floor",
+			"input": {
+				"x": 4.35,
+				"decimals": 2
+			},
+			"want": {
+				"ok": {
+					"value": 4.35
+				}
+			}
+		},
+		{
+			"name": "gidgp-x-floor-truncates",
+			"rules": ["GAMEPASS-38"],
+			"op": "x.floor",
+			"input": {
+				"x": 2.999,
+				"decimals": 2
+			},
+			"want": {
+				"ok": {
+					"value": 2.99
+				}
+			}
+		},
+		{
+			"name": "gidgp-x-floor-below-grid-point",
+			"rules": ["GAMEPASS-38"],
+			"op": "x.floor",
+			"input": {
+				"x": 1.0999,
+				"decimals": 2
+			},
+			"want": {
+				"ok": {
+					"value": 1.09
+				}
+			}
+		},
+		{
+			"name": "gidgp-x-floor-200-009",
+			"rules": ["GAMEPASS-38"],
+			"op": "x.floor",
+			"input": {
+				"x": 200.009,
+				"decimals": 2
+			},
+			"want": {
+				"ok": {
+					"value": 200.0
+				}
+			}
+		},
+		{
+			"name": "gidgp-x-floor-three-decimals",
+			"rules": ["GAMEPASS-38"],
+			"op": "x.floor",
+			"input": {
+				"x": 1.001,
+				"decimals": 3
+			},
+			"want": {
+				"ok": {
+					"value": 1.001
+				}
+			},
+			"note": "1000.9999999999999 rounds to 1001 before the floor."
+		},
+		{
+			"name": "gidgp-x-floor-six-decimals",
+			"rules": ["GAMEPASS-38", "GAMEPASS-45"],
+			"op": "x.floor",
+			"input": {
+				"x": 73.75492299999999,
+				"decimals": 6
+			},
+			"want": {
+				"ok": {
+					"value": 73.754923
+				}
+			}
+		},
+		{
+			"name": "gidgp-x-floor-negative",
+			"rules": ["GAMEPASS-38"],
+			"op": "x.floor",
+			"input": {
+				"x": -1.234,
+				"decimals": 2
+			},
+			"want": {
+				"ok": {
+					"value": -1.24
+				}
+			},
+			"note": "floor rounds toward negative infinity."
+		},
+		{
+			"name": "gidgp-x-floor-negative-zero",
+			"rules": ["GAMEPASS-38"],
+			"op": "x.floor",
+			"input": {
+				"x": {
+					"$number": "-0"
+				},
+				"decimals": 2
+			},
+			"want": {
+				"ok": {
+					"value": 0
+				}
+			}
+		},
+		{
+			"name": "gidgp-x-floor-below-exactness-bound",
+			"rules": ["GAMEPASS-38", "GAMEPASS-39"],
+			"op": "x.floor",
+			"input": {
+				"x": 123456789012.345,
+				"decimals": 2
+			},
+			"want": {
+				"ok": {
+					"value": 123456789012.34
+				}
+			},
+			"note": "x × 10^decimals is 12345678901234.5, below 10^14, where every SDK must agree exactly."
+		},
+		{
+			"name": "gidgp-x-floor-decimals-left-out",
+			"rules": ["GAMEPASS-40"],
+			"op": "x.floor",
+			"input": {
+				"x": 1.239
+			},
+			"want": {
+				"ok": {
+					"value": 1.23
+				}
+			},
+			"note": "Absent decimals means 2."
+		},
+		{
+			"name": "gidgp-x-floor-decimals-null",
+			"rules": ["GAMEPASS-40"],
+			"op": "x.floor",
+			"input": {
+				"x": 1.239,
+				"decimals": null
+			},
+			"want": {
+				"ok": {
+					"value": 1.23
+				}
+			}
+		},
+		{
+			"name": "gidgp-x-floor-decimals-zero",
+			"rules": ["GAMEPASS-40"],
+			"op": "x.floor",
+			"input": {
+				"x": 1.239,
+				"decimals": 0
+			},
+			"want": {
+				"ok": {
+					"value": 1.23
+				}
+			}
+		},
+		{
+			"name": "gidgp-x-floor-decimals-negative-zero",
+			"rules": ["GAMEPASS-40"],
+			"op": "x.floor",
+			"input": {
+				"x": 1.239,
+				"decimals": {
+					"$number": "-0"
+				}
+			},
+			"want": {
+				"ok": {
+					"value": 1.23
+				}
+			}
+		},
+		{
+			"name": "gidgp-x-floor-decimals-integral-float",
+			"rules": ["GAMEPASS-40"],
+			"op": "x.floor",
+			"input": {
+				"x": 1.2399,
+				"decimals": 3.0
+			},
+			"want": {
+				"ok": {
+					"value": 1.239
+				}
+			},
+			"note": "decimals is judged by value: a number written 3.0 is the integer 3, as for xDecimals (GAMEPASS-26)."
+		},
+		{
+			"name": "gidgp-x-floor-decimals-one",
+			"rules": ["GAMEPASS-40"],
+			"op": "x.floor",
+			"input": {
+				"x": 1.239,
+				"decimals": 1
+			},
+			"want": {
+				"error": ["invalid_claim"]
+			},
+			"note": "Never a finite result outside [2, 6]."
+		},
+		{
+			"name": "gidgp-x-floor-decimals-seven",
+			"rules": ["GAMEPASS-40"],
+			"op": "x.floor",
+			"input": {
+				"x": 1.239,
+				"decimals": 7
+			},
+			"want": {
+				"error": ["invalid_claim"]
+			},
+			"note": "Never a finite result outside [2, 6]."
+		},
+		{
+			"name": "gidgp-x-floor-decimals-negative",
+			"rules": ["GAMEPASS-40"],
+			"op": "x.floor",
+			"input": {
+				"x": 1.239,
+				"decimals": -1
+			},
+			"want": {
+				"error": ["invalid_claim"]
+			},
+			"note": "Never a finite result outside [2, 6]."
+		},
+		{
+			"name": "gidgp-x-floor-decimals-fraction",
+			"rules": ["GAMEPASS-40"],
+			"needs": ["fixed-int"],
+			"op": "x.floor",
+			"input": {
+				"x": 1.239,
+				"decimals": 2.5
+			},
+			"want": {
+				"error": ["invalid_claim"]
+			},
+			"note": "A runner whose decimals parameter is an integer skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-x-floor-x-nan",
+			"rules": ["GAMEPASS-41"],
+			"op": "x.floor",
+			"input": {
+				"x": {
+					"$number": "NaN"
+				},
+				"decimals": 2
+			},
+			"want": {
+				"error": ["invalid_claim"]
+			}
+		},
+		{
+			"name": "gidgp-x-player-golden",
+			"rules": ["GAMEPASS-42", "GAMEPASS-45"],
+			"op": "x.player",
+			"input": {
+				"xBase": 1.857,
+				"boost": 1.5,
+				"decimals": 2
+			},
+			"want": {
+				"ok": {
+					"value": 2.27
+				}
+			},
+			"note": "First entry of the published player-x vectors."
+		},
+		{
+			"name": "gidgp-x-player-floors-xbase-first",
+			"rules": ["GAMEPASS-42"],
+			"op": "x.player",
+			"input": {
+				"xBase": 1.859,
+				"boost": 2,
+				"decimals": 2
+			},
+			"want": {
+				"ok": {
+					"value": 2.7
+				}
+			},
+			"note": "xBase floors to 1.85 first: 1 + 0.85 × 2 = 2.7, not 2.71."
+		},
+		{
+			"name": "gidgp-x-player-boost-zero",
+			"rules": ["GAMEPASS-42"],
+			"op": "x.player",
+			"input": {
+				"xBase": 2,
+				"boost": 0,
+				"decimals": 2
+			},
+			"want": {
+				"ok": {
+					"value": 1
+				}
+			}
+		},
+		{
+			"name": "gidgp-x-player-negative-boost-no-clamp",
+			"rules": ["GAMEPASS-42", "GAMEPASS-49"],
+			"op": "x.player",
+			"input": {
+				"xBase": 3,
+				"boost": -1,
+				"decimals": 2
+			},
+			"want": {
+				"ok": {
+					"value": -1
+				}
+			},
+			"note": "No clamp below 1."
+		},
+		{
+			"name": "gidgp-x-player-negative-result-floored-down",
+			"rules": ["GAMEPASS-42"],
+			"op": "x.player",
+			"input": {
+				"xBase": 2.5,
+				"boost": -1.25,
+				"decimals": 2
+			},
+			"want": {
+				"ok": {
+					"value": -0.88
+				}
+			},
+			"note": "-0.875 floors to -0.88."
+		},
+		{
+			"name": "gidgp-x-player-xbase-below-one",
+			"rules": ["GAMEPASS-42"],
+			"op": "x.player",
+			"input": {
+				"xBase": 0.5,
+				"boost": 2,
+				"decimals": 2
+			},
+			"want": {
+				"ok": {
+					"value": 0
+				}
+			}
+		},
+		{
+			"name": "gidgp-x-player-decimals-left-out",
+			"rules": ["GAMEPASS-40", "GAMEPASS-42"],
+			"op": "x.player",
+			"input": {
+				"xBase": 1.857,
+				"boost": 1.5
+			},
+			"want": {
+				"ok": {
+					"value": 2.27
+				}
+			}
+		},
+		{
+			"name": "gidgp-x-player-six-decimals",
+			"rules": ["GAMEPASS-42", "GAMEPASS-45"],
+			"op": "x.player",
+			"input": {
+				"xBase": 49.503282,
+				"boost": 1.5,
+				"decimals": 6
+			},
+			"want": {
+				"ok": {
+					"value": 73.754923
+				}
+			}
+		},
+		{
+			"name": "gidgp-x-player-no-fused-multiply-add",
+			"rules": ["GAMEPASS-43"],
+			"op": "x.player",
+			"input": {
+				"xBase": 1.601759,
+				"boost": 0.8423239203734302,
+				"decimals": 6
+			},
+			"want": {
+				"ok": {
+					"value": 1.506875
+				}
+			},
+			"note": "Each of the three operations rounds on its own; a fused multiply-add gives 1.506876."
+		},
+		{
+			"name": "gidgp-x-player-decimals-seven",
+			"rules": ["GAMEPASS-40"],
+			"op": "x.player",
+			"input": {
+				"xBase": 1.857,
+				"boost": 1.5,
+				"decimals": 7
+			},
+			"want": {
+				"error": ["invalid_claim"]
+			}
+		},
+		{
+			"name": "gidgp-x-player-boost-nan",
+			"rules": ["GAMEPASS-41"],
+			"op": "x.player",
+			"input": {
+				"xBase": 1.857,
+				"boost": {
+					"$number": "NaN"
+				},
+				"decimals": 2
+			},
+			"want": {
+				"error": ["invalid_claim"]
+			}
+		},
+		{
+			"name": "gidgp-x-player-xbase-nan",
+			"rules": ["GAMEPASS-41"],
+			"op": "x.player",
+			"input": {
+				"xBase": {
+					"$number": "NaN"
+				},
+				"boost": 1.5,
+				"decimals": 2
+			},
+			"want": {
+				"error": ["invalid_claim"]
+			}
+		},
+		{
+			"name": "gidgp-x-player-infinite-boost-times-zero",
+			"rules": ["GAMEPASS-41"],
+			"op": "x.player",
+			"input": {
+				"xBase": 1,
+				"boost": {
+					"$number": "Infinity"
+				},
+				"decimals": 2
+			},
+			"want": {
+				"error": ["invalid_claim"]
+			},
+			"note": "A helper that returns only a number gives NaN here, (1 - 1) × Infinity."
+		},
+		{
+			"name": "gidgp-x-player-infinite-xbase-times-zero",
+			"rules": ["GAMEPASS-41"],
+			"op": "x.player",
+			"input": {
+				"xBase": {
+					"$number": "Infinity"
+				},
+				"boost": 0,
+				"decimals": 2
+			},
+			"want": {
+				"error": ["invalid_claim"]
+			},
+			"note": "A helper that returns only a number gives NaN here, (Infinity - 1) × 0."
+		},
+		{
+			"name": "gidgp-x-player-overflow-infinity",
+			"rules": ["GAMEPASS-42"],
+			"op": "x.player",
+			"input": {
+				"xBase": 200,
+				"boost": 1e308,
+				"decimals": 2
+			},
+			"want": {
+				"ok": {
+					"value": {
+						"$number": "Infinity"
+					}
+				}
+			},
+			"note": "Finite inputs whose result overflows give +Infinity."
+		}
+	]
+}

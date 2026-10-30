@@ -1,0 +1,48 @@
+{
+	"keys": {
+		"partner": {
+			"pkcs8": "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1\n-----END PRIVATE KEY-----\n",
+			"sec1": "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oAoGCCqGSM49\nAwEHoUQDQgAEqGUIt5Vez3gvBB2OmS/uJIeC4ulwgbXKHywwH8odE8X02rY4V65a\nTnjK9By204K0EAoT1Su/OUkiyJBk5wyJtQ==\n-----END EC PRIVATE KEY-----\n",
+			"spki": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEqGUIt5Vez3gvBB2OmS/uJIeC4ulw\ngbXKHywwH8odE8X02rY4V65aTnjK9By204K0EAoT1Su/OUkiyJBk5wyJtQ==\n-----END PUBLIC KEY-----\n",
+			"spkiCompressed": "-----BEGIN PUBLIC KEY-----\nMDkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDIgADqGUIt5Vez3gvBB2OmS/uJIeC4ulw\ngbXKHywwH8odE8U=\n-----END PUBLIC KEY-----\n"
+		},
+		"partner2": {
+			"pkcs8": "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgrRX77wTVPR8cOihY\n4yNeLd6sJBEX1edxT5+ytaN3V7ehRANCAASEEdew/gt5C/0M7Zuq86rv1VHlE3L4\n377RMALghduIulDZR+hWMRPqhVKYI6oxqCm8TYGKgdaxr1JWFfmTi7DA\n-----END PRIVATE KEY-----\n",
+			"sec1": "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIK0V++8E1T0fHDooWOMjXi3erCQRF9XncU+fsrWjd1e3oAoGCCqGSM49\nAwEHoUQDQgAEhBHXsP4LeQv9DO2bqvOq79VR5RNy+N++0TAC4IXbiLpQ2UfoVjET\n6oVSmCOqMagpvE2BioHWsa9SVhX5k4uwwA==\n-----END EC PRIVATE KEY-----\n",
+			"spki": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEhBHXsP4LeQv9DO2bqvOq79VR5RNy\n+N++0TAC4IXbiLpQ2UfoVjET6oVSmCOqMagpvE2BioHWsa9SVhX5k4uwwA==\n-----END PUBLIC KEY-----\n"
+		},
+		"boostx": {
+			"pkcs8": "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgG8djkyWNgIQC9hHv\nUWp1DMOP+HJcdtY7ltwK/wcNLrWhRANCAARxUQZaxCxHav++f7r0+o3+dE8j3XPT\ny39ScX6Brh+VpCxhv/3sm8yommWuXDAzJS7Uu4uYOE/1z6GYdZwj/ROf\n-----END PRIVATE KEY-----\n",
+			"sec1": "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIBvHY5MljYCEAvYR71FqdQzDj/hyXHbWO5bcCv8HDS61oAoGCCqGSM49\nAwEHoUQDQgAEcVEGWsQsR2r/vn+69PqN/nRPI91z08t/UnF+ga4flaQsYb/97JvM\nqJplrlwwMyUu1LuLmDhP9c+hmHWcI/0Tnw==\n-----END EC PRIVATE KEY-----\n",
+			"spki": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEcVEGWsQsR2r/vn+69PqN/nRPI91z\n08t/UnF+ga4flaQsYb/97JvMqJplrlwwMyUu1LuLmDhP9c+hmHWcI/0Tnw==\n-----END PUBLIC KEY-----\n"
+		},
+		"other": {
+			"pkcs8": "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgY46GK1zwe6D4Re+A\n36jzSPsYSnHkfDhyuacIUwLlvBOhRANCAARHeKjs3BjZpsXGQ4IC0UdSRBoxyolE\nRt13E3YFViKVLFHBrp3C+RK3XY3MRdDzrUar+tG+MpDKXL2+nMyI449F\n-----END PRIVATE KEY-----\n",
+			"sec1": "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIGOOhitc8Hug+EXvgN+o80j7GEpx5Hw4crmnCFMC5bwToAoGCCqGSM49\nAwEHoUQDQgAER3io7NwY2abFxkOCAtFHUkQaMcqJREbddxN2BVYilSxRwa6dwvkS\nt12NzEXQ861Gq/rRvjKQyly9vpzMiOOPRQ==\n-----END EC PRIVATE KEY-----\n",
+			"spki": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAER3io7NwY2abFxkOCAtFHUkQaMcqJ\nREbddxN2BVYilSxRwa6dwvkSt12NzEXQ861Gq/rRvjKQyly9vpzMiOOPRQ==\n-----END PUBLIC KEY-----\n"
+		},
+		"p384": {
+			"pkcs8": "-----BEGIN PRIVATE KEY-----\nMIG2AgEAMBAGByqGSM49AgEGBSuBBAAiBIGeMIGbAgEBBDAN3YrPn0MFCQI/JTdc\nDIjaToj82FmSxFpsu6A7S6B8elC9DXQP31Ek2stQj4fl5RChZANiAATDiV1aSrVW\n6B0bK0m1ybEaL8VFaIoy0+qLJc7pZpfthOAnus+FZ1doT5WdNyzUdl+/ff2UEYlB\n5J2KzjFnLcXKxoR+RRaE5vWltdTjCOxYsPVKkJYxLwMXs8g9BR0Cbas=\n-----END PRIVATE KEY-----\n",
+			"sec1": "-----BEGIN EC PRIVATE KEY-----\nMIGkAgEBBDAN3YrPn0MFCQI/JTdcDIjaToj82FmSxFpsu6A7S6B8elC9DXQP31Ek\n2stQj4fl5RCgBwYFK4EEACKhZANiAATDiV1aSrVW6B0bK0m1ybEaL8VFaIoy0+qL\nJc7pZpfthOAnus+FZ1doT5WdNyzUdl+/ff2UEYlB5J2KzjFnLcXKxoR+RRaE5vWl\ntdTjCOxYsPVKkJYxLwMXs8g9BR0Cbas=\n-----END EC PRIVATE KEY-----\n",
+			"spki": "-----BEGIN PUBLIC KEY-----\nMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEw4ldWkq1VugdGytJtcmxGi/FRWiKMtPq\niyXO6WaX7YTgJ7rPhWdXaE+VnTcs1HZfv339lBGJQeSdis4xZy3FysaEfkUWhOb1\npbXU4wjsWLD1SpCWMS8DF7PIPQUdAm2r\n-----END PUBLIC KEY-----\n"
+		}
+	},
+	"gidSignatures": [
+		{
+			"key": "partner",
+			"partner": "acme",
+			"user": "u-1",
+			"bet": "b-1",
+			"canonical": "{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\"}",
+			"signature": "Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw"
+		},
+		{
+			"key": "partner2",
+			"partner": "acme",
+			"user": "u-1",
+			"bet": "b-1",
+			"canonical": "{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\"}",
+			"signature": "oEDWTx5gVNsd37CDrXiPBcunxA8I1y1HC47FKq6GPtHoVa0_BoP8G0zKDocYd4o5TOFR5OdHemzeAZe-_WyJRg"
+		}
+	]
+}

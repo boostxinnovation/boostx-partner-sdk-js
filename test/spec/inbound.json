@@ -1,0 +1,6414 @@
+{
+	"group": "inbound",
+	"cases": [
+		{
+			"name": "inbound-booster-accepted",
+			"rules": ["INBOUND-32", "INBOUND-42", "INBOUND-06"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-ignored-member-nested-64-levels",
+			"rules": ["INBOUND-54", "KEYS-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "The payload nests 64 levels deep: the payload object, then 63 arrays in the unknown member x."
+		},
+		{
+			"name": "inbound-booster-final-jackpot-round",
+			"rules": ["INBOUND-39", "INBOUND-40"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":3,\"boost\":2.25,\"final\":true,\"jackpot\":true},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 3,
+					"boost": 2.25,
+					"final": true,
+					"jackpot": true,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-jackpot-without-final",
+			"rules": ["INBOUND-40"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":true},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": true,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "No combination of final, jackpot and round is checked."
+		},
+		{
+			"name": "inbound-booster-final-without-jackpot",
+			"rules": ["INBOUND-39", "INBOUND-40"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":7,\"boost\":1.5,\"final\":true,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 7,
+					"boost": 1.5,
+					"final": true,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-header-alg-only",
+			"rules": ["INBOUND-04"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-header-typ-not-string",
+			"rules": ["INBOUND-04", "KEYS-64"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"typ\":1}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-header-other-members-ignored",
+			"rules": ["INBOUND-04"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"typ\":[\"JWT\"],\"alg\":\"ES256\",\"kid\":{\"id\":null},\"b64\":false,\"x5u\":7}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "Every header member other than alg and crit is ignored, whatever its type; b64 without crit has no effect."
+		},
+		{
+			"name": "inbound-booster-header-surrounding-whitespace",
+			"rules": ["INBOUND-05"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": " \t{ \"alg\" : \"ES256\" }\r\n",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-header-alg-repeated-last-wins",
+			"rules": ["INBOUND-15", "KEYS-22"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"HS256\",\"alg\":\"ES256\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-header-alg-escaped",
+			"rules": ["INBOUND-05", "INBOUND-14"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"\\u0061lg\":\"E\\u0053256\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "Names and values compare after JSON unescaping."
+		},
+		{
+			"name": "inbound-booster-header-alg-case-variant-ignored",
+			"rules": ["INBOUND-05", "INBOUND-14"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"ALG\":\"none\",\"Alg\":1,\"alg\":\"ES256\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-header-paired-surrogate-escape",
+			"rules": ["INBOUND-28"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"\\ud83d\\ude00\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "An escaped high-then-low pair is well-formed."
+		},
+		{
+			"name": "inbound-booster-partner-keys-second-verifies",
+			"rules": ["INBOUND-29"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"partnerKeys": ["partner2", "partner"]
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-partner-keys-unusable-skipped",
+			"rules": ["INBOUND-29", "INBOUND-60"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"partnerKeys": ["@unusable", "partner"]
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-partner-keys-null-skipped",
+			"rules": ["INBOUND-29", "INBOUND-60"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"partnerKeys": [null, "partner"]
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-gid-by-partner2",
+			"rules": ["INBOUND-29"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid:gid2},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"partnerKeys": ["partner2"]
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid2}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-unknown-members-ignored",
+			"rules": ["INBOUND-14", "INBOUND-16"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\",\"Partner\":\"zeta\",\"extra\":{\"a\":[1]}},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false,\"Round\":\"x\",\"extra\":null},\"iat\":${now-100},\"jti\":\"j-1\",\"Iat\":\"x\",\"Exp\":0,\"NBF\":true}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "Members whose names differ only in case are unknown, including Exp and NBF."
+		},
+		{
+			"name": "inbound-booster-member-name-escapes",
+			"rules": ["INBOUND-14"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"bo\\u006fster\":{\"gid\":{\"p\\u0061rtner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"r\\u006fund\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"\\u0069at\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "Member names match after JSON unescaping."
+		},
+		{
+			"name": "inbound-booster-gid-escaped-values",
+			"rules": ["INBOUND-20", "INBOUND-27"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"\\u0061cme\",\"user\":\"u\\u002d1\",\"bet\":\"b\\u002D1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "The GID is verified over the unescaped values."
+		},
+		{
+			"name": "inbound-booster-gid-exotic-ids",
+			"rules": ["INBOUND-27", "INBOUND-20"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid:exotic},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"exotic": {
+					"key": "partner",
+					"partner": "acmé<&>",
+					"user": "u/\u2028",
+					"bet": "b-😀 :1"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acmé<&>",
+						"user": "u/\u2028",
+						"bet": "b-😀 :1",
+						"signature": "${sig:exotic}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "Non-ASCII, a non-BMP character, U+2028, HTML characters, a slash, a space and a colon in the ids."
+		},
+		{
+			"name": "inbound-booster-gid-escaped-surrogate-pair",
+			"rules": ["INBOUND-28", "INBOUND-27"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-\\ud83d\\ude00\",\"signature\":\"${sig:pair}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"pair": {
+					"key": "partner",
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-😀"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-😀",
+						"signature": "${sig:pair}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "The bet id is sent as an escaped surrogate pair, which is well-formed."
+		},
+		{
+			"name": "inbound-booster-gid-canonical-bytes",
+			"rules": ["INBOUND-27"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u\\/\\u003c\\u003e\\u0026\\u2028\\u00e9\\u007f\",\"bet\":\"b\\u0001\\u000a\",\"signature\":\"${sig:canon}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"canon": {
+					"key": "partner",
+					"text": "{\"partner\":\"acme\",\"user\":\"u/<>&\u2028é\u007f\",\"bet\":\"b\\u0001\\n\"}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u/<>&\u2028é\u007f",
+						"bet": "b\u0001\n",
+						"signature": "${sig:canon}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "The signature covers JSON.stringify bytes: / < > & U+2028, DEL and non-ASCII literal, C0 controls escaped. The token escapes the same values differently."
+		},
+		{
+			"name": "inbound-booster-gid-empty-user-and-bet",
+			"rules": ["INBOUND-17", "INBOUND-19"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"\",\"bet\":\"\",\"signature\":\"${sig:empty}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"empty": {
+					"key": "partner",
+					"text": "{\"partner\":\"acme\",\"user\":\"\",\"bet\":\"\"}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "",
+						"bet": "",
+						"signature": "${sig:empty}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "Only an empty gid.partner is refused; the GID is verified over the empty values."
+		},
+		{
+			"name": "inbound-booster-gid-high-s-signature",
+			"rules": ["INBOUND-07", "INBOUND-25"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:highS}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"highS": {
+					"fixed": "Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ38Ex4gD0PoF89ZpwZ8ldEtRdSjpIMAb2i6QiWU9e4qmg"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:highS}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "The fixed gid signature with s replaced by n - s: either s value verifies."
+		},
+		{
+			"name": "inbound-booster-escaped-backslash-before-u",
+			"rules": ["INBOUND-28"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"note\":\"\\\\ud800 \\\\\\\\udc00\"}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "The text \\\\ud800 is an escaped backslash followed by ud800, not a surrogate escape."
+		},
+		{
+			"name": "inbound-booster-payload-whitespace",
+			"rules": ["INBOUND-09"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "\r\n {\n\t\"booster\" : {\n\t\t\"gid\" : ${gid} ,\n\t\t\"round\" : 2 , \"boost\" : 1.5 ,\n\t\t\"final\" : false , \"jackpot\" : false\n\t} ,\n\t\"iat\" : ${now-100}\n}\n "
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-root-repeated-last-wins",
+			"rules": ["INBOUND-15"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":\"x\"},\"booster\":{\"gid\":${gid},\"round\":5,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 5,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-round-null-then-number",
+			"rules": ["INBOUND-15", "INBOUND-33"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":null,\"round\":4,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 4,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-gid-repeated-last-wins",
+			"rules": ["INBOUND-15", "INBOUND-61"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"zeta\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-iat-repeated-last-wins",
+			"rules": ["INBOUND-15", "INBOUND-41"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":\"x\",\"iat\":${now-5}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-5}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-round-min",
+			"rules": ["INBOUND-34"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":1,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 1,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-round-max-safe",
+			"rules": ["INBOUND-34", "INBOUND-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":9007199254740991,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 9007199254740991,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-round-fraction-spelling",
+			"rules": ["INBOUND-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":3.0,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 3,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-round-exponent-spelling",
+			"rules": ["INBOUND-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":30E-1,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 3,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-round-exponent-hundred",
+			"rules": ["INBOUND-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":1e2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 100,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-round-rounds-to-integer",
+			"rules": ["INBOUND-35", "INBOUND-34"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":0.99999999999999999999,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 1,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "The text is nearer to 1 than to any other binary64 value, so the value is 1."
+		},
+		{
+			"name": "inbound-booster-boost-below-one",
+			"rules": ["INBOUND-37"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":0.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 0.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-boost-min-subnormal",
+			"rules": ["INBOUND-37", "INBOUND-58"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":5e-324,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 5e-324,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-boost-max-finite",
+			"rules": ["INBOUND-37", "INBOUND-58"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.7976931348623157e308,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.7976931348623157e308,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-boost-no-upper-bound",
+			"rules": ["INBOUND-37", "INBOUND-38"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1e300,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1e300,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-boost-integer-spelling",
+			"rules": ["INBOUND-36"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":2,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 2,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-boost-exponent-spelling",
+			"rules": ["INBOUND-58"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":15e-1,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-boost-nearest-double",
+			"rules": ["INBOUND-58", "INBOUND-38"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.23456789012345678901,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.2345678901234567,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "boost is the nearest binary64 value, returned unrounded."
+		},
+		{
+			"name": "inbound-booster-iat-zero",
+			"rules": ["INBOUND-41", "INBOUND-42"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":0}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": 0
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-iat-negative",
+			"rules": ["INBOUND-41", "INBOUND-42"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":-1}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": -1
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-iat-min-safe",
+			"rules": ["INBOUND-41"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":-9007199254740991}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": -9007199254740991
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-iat-max-safe",
+			"rules": ["INBOUND-41", "INBOUND-42"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":9007199254740991}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": 9007199254740991
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-iat-far-past",
+			"rules": ["INBOUND-42"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": 1
+				}
+			},
+			"note": "No age check."
+		},
+		{
+			"name": "inbound-booster-iat-far-future",
+			"rules": ["INBOUND-42"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now+31536000}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now+31536000}"
+				}
+			},
+			"note": "No future-skew check."
+		},
+		{
+			"name": "inbound-booster-iat-exponent-spelling",
+			"rules": ["INBOUND-35", "INBOUND-41"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1.7e9}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": 1700000000
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-iat-underflow-is-zero",
+			"rules": ["INBOUND-35", "INBOUND-41"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1e-400}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": 0
+				}
+			},
+			"note": "The text underflows to 0, an integral value."
+		},
+		{
+			"name": "inbound-booster-iat-negative-zero",
+			"rules": ["INBOUND-41"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":-0}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": 0
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-exp-future",
+			"rules": ["INBOUND-32", "KEYS-42", "INBOUND-43"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":${now+20}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-exp-fractional-future",
+			"rules": ["INBOUND-32", "KEYS-42", "INBOUND-43"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":${now+20}.5}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "exp need only be a JSON number."
+		},
+		{
+			"name": "inbound-booster-nbf-now",
+			"rules": ["INBOUND-32", "KEYS-42", "INBOUND-43"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"nbf\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "nbf equal to now is not after now."
+		},
+		{
+			"name": "inbound-booster-exp-and-nbf-window",
+			"rules": ["INBOUND-32", "KEYS-42", "INBOUND-43"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"nbf\":${now-20},\"exp\":${now+20}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-exp-inside-root-ignored",
+			"rules": ["INBOUND-14", "KEYS-42"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false,\"exp\":${now-20},\"nbf\":${now+20}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "exp and nbf are top-level claims; members of that name inside the root are unknown."
+		},
+		{
+			"name": "inbound-booster-boostx-key-null",
+			"rules": ["INBOUND-23", "INBOUND-31", "INBOUND-44"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"boostxKey": null
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "inbound-booster-boostx-key-unusable",
+			"rules": ["INBOUND-23", "INBOUND-31", "INBOUND-60"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"boostxKey": "@unusable"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "inbound-booster-partner-keys-empty",
+			"rules": ["INBOUND-30", "INBOUND-31"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"partnerKeys": []
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "inbound-booster-partner-keys-none-usable",
+			"rules": ["INBOUND-31", "INBOUND-60"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"partnerKeys": ["@unusable", null]
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "inbound-booster-order-boostx-key-before-token",
+			"rules": ["INBOUND-31"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"raw": "x"
+				},
+				"boostxKey": "@unusable"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "inbound-booster-order-partner-keys-before-token",
+			"rules": ["INBOUND-31"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"raw": ""
+				},
+				"partnerKeys": []
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "inbound-booster-order-partner-keys-before-signature",
+			"rules": ["INBOUND-31"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"signature": ["flip"]
+				},
+				"partnerKeys": ["@unusable"]
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "inbound-booster-order-partner-keys-before-claims",
+			"rules": ["INBOUND-31"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":null,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"partnerKeys": ["@unusable"]
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "inbound-booster-order-partner-keys-before-gid",
+			"rules": ["INBOUND-31"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"partnerKeys": ["@unusable"]
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "inbound-booster-order-both-keys-unusable",
+			"rules": ["INBOUND-59", "INBOUND-31"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"raw": "x"
+				},
+				"boostxKey": null,
+				"partnerKeys": []
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			},
+			"note": "The BoostX key is checked first; both faults carry the same category."
+		},
+		{
+			"name": "inbound-booster-signed-by-other-key",
+			"rules": ["INBOUND-06", "INBOUND-46"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"key": "other"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-signed-by-partner-key",
+			"rules": ["INBOUND-06"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"key": "partner"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-boostx-key-mismatch",
+			"rules": ["INBOUND-06"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"boostxKey": "other"
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-token-empty",
+			"rules": ["INBOUND-02", "INBOUND-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"raw": ""
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-token-two-segments",
+			"rules": ["INBOUND-02"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"transform": [
+						{
+							"segments": 2
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-token-four-segments",
+			"rules": ["INBOUND-02"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"transform": [
+						{
+							"append": ".AAAA"
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-token-empty-segments",
+			"rules": ["INBOUND-02", "INBOUND-05"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"raw": ".."
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-token-leading-space",
+			"rules": ["INBOUND-03"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"transform": [
+						{
+							"insert": " ",
+							"at": 0
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			},
+			"note": "Tokens are used exactly as received, never trimmed."
+		},
+		{
+			"name": "inbound-booster-header-padded",
+			"rules": ["INBOUND-03"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"headerSegment": ["pad"],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-header-std-alphabet",
+			"rules": ["INBOUND-03"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"x\":\"???\",\"alg\":\"ES256\",\"typ\":\"JWT\"}",
+					"headerSegment": ["std-alphabet"],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-header-trailing-bits",
+			"rules": ["INBOUND-03"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"typ\":\"JWT\",\"kid\":\"k1\"}",
+					"headerSegment": ["trailing-bits"],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-header-space-in-segment",
+			"rules": ["INBOUND-03"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"headerSegment": [
+						{
+							"insert": " ",
+							"at": 4
+						}
+					],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-header-newline-in-segment",
+			"rules": ["INBOUND-03"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"headerSegment": [
+						{
+							"insert": "\n",
+							"at": 8
+						}
+					],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-header-bom",
+			"rules": ["INBOUND-11"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "${hex:efbbbf}{\"alg\":\"ES256\",\"typ\":\"JWT\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-header-invalid-utf8",
+			"rules": ["INBOUND-10"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"${hex:ff}\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-header-overlong-utf8",
+			"rules": ["INBOUND-10"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"${hex:c0af}\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-header-encoded-surrogate",
+			"rules": ["INBOUND-10"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"${hex:eda080}\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-header-above-max-code-point",
+			"rules": ["INBOUND-10"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"${hex:f4908080}\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-header-lone-surrogate",
+			"rules": ["INBOUND-28", "INBOUND-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"\\ud800\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-header-null",
+			"rules": ["INBOUND-05"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "null",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-header-array",
+			"rules": ["INBOUND-05"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "[{\"alg\":\"ES256\"}]",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			},
+			"note": "Not an object: a format error, not a signature failure."
+		},
+		{
+			"name": "inbound-booster-header-string",
+			"rules": ["INBOUND-05"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "\"ES256\"",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-header-trailing-data",
+			"rules": ["INBOUND-05"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\"}{}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-header-empty",
+			"rules": ["INBOUND-05"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-payload-padded",
+			"rules": ["INBOUND-03"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1761955200}",
+					"payloadSegment": ["pad"]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-payload-std-alphabet",
+			"rules": ["INBOUND-03"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"x\":\"???\",\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1761955200}",
+					"payloadSegment": ["std-alphabet"]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-payload-trailing-bits",
+			"rules": ["INBOUND-03"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1761955200}",
+					"payloadSegment": ["trailing-bits"]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-payload-space-in-segment",
+			"rules": ["INBOUND-03"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"payloadSegment": [
+						{
+							"insert": " ",
+							"at": 8
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-payload-non-ascii-signed",
+			"rules": ["INBOUND-06", "KEYS-29", "INBOUND-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"payloadSegment": [
+						{
+							"append": "é"
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			},
+			"note": "Appended before signing and signed as the text's UTF-8 octets, so the signature verifies and the payload segment fails as malformed, not as a signature failure."
+		},
+		{
+			"name": "inbound-booster-payload-bom",
+			"rules": ["INBOUND-11"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "${hex:efbbbf}{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-payload-invalid-utf8",
+			"rules": ["INBOUND-10"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"note\":\"${hex:ff}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			},
+			"note": "Outside the gid, where no signature check could catch it."
+		},
+		{
+			"name": "inbound-booster-payload-invalid-utf8-in-gid",
+			"rules": ["INBOUND-10"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1${hex:ff}\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-payload-overlong-utf8",
+			"rules": ["INBOUND-10"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"note\":\"${hex:c0af}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-payload-encoded-surrogate",
+			"rules": ["INBOUND-10"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"note\":\"${hex:eda080}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-payload-lone-surrogate-in-gid",
+			"rules": ["INBOUND-28"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\\ud800\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			},
+			"note": "Never verified as a GID."
+		},
+		{
+			"name": "inbound-booster-payload-lone-low-surrogate",
+			"rules": ["INBOUND-28"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"note\":\"\\udc00\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-payload-reversed-surrogates",
+			"rules": ["INBOUND-28"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"note\":\"\\udc00\\ud800\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-payload-high-surrogate-then-other",
+			"rules": ["INBOUND-28"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"note\":\"\\ud800\\u0041\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-payload-high-surrogate-then-escaped-backslash",
+			"rules": ["INBOUND-28"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"note\":\"\\ud800\\\\udc00\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			},
+			"note": "The escape after the high surrogate is \\\\, not \\u."
+		},
+		{
+			"name": "inbound-booster-payload-lone-surrogate-in-name",
+			"rules": ["INBOUND-28"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"\\ud800\":1}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-payload-lone-surrogate-in-replaced-member",
+			"rules": ["INBOUND-28", "INBOUND-15"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"note\":\"\\ud800\",\"note\":\"ok\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			},
+			"note": "The check is on the JSON text, so a replaced member counts."
+		},
+		{
+			"name": "inbound-booster-payload-null",
+			"rules": ["INBOUND-09"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "null"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-payload-array",
+			"rules": ["INBOUND-09"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "[{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}]"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-payload-number",
+			"rules": ["INBOUND-09"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "1"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-payload-trailing-data",
+			"rules": ["INBOUND-09"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}null"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-payload-empty",
+			"rules": ["INBOUND-09"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": ""
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-payload-raw-control-character",
+			"rules": ["INBOUND-09"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b\t1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			},
+			"note": "An unescaped TAB inside a JSON string is not JSON."
+		},
+		{
+			"name": "inbound-booster-payload-bare-nan",
+			"rules": ["INBOUND-09", "INBOUND-36"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":NaN,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-payload-leading-zero",
+			"rules": ["INBOUND-09", "INBOUND-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":02,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-payload-plus-sign",
+			"rules": ["INBOUND-09", "INBOUND-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":+2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-alg-absent",
+			"rules": ["INBOUND-55"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"typ\":\"JWT\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-alg-empty-object",
+			"rules": ["INBOUND-55"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-alg-hs256",
+			"rules": ["INBOUND-55"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"HS256\",\"typ\":\"JWT\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-alg-none",
+			"rules": ["INBOUND-55"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"none\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-alg-lowercase",
+			"rules": ["INBOUND-55"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"es256\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-alg-trailing-space",
+			"rules": ["INBOUND-55"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256 \"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-alg-null",
+			"rules": ["INBOUND-55"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":null}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-alg-number",
+			"rules": ["INBOUND-55"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":256}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-alg-boolean",
+			"rules": ["INBOUND-55"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":true}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-alg-array",
+			"rules": ["INBOUND-55"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":[\"ES256\"]}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-alg-object",
+			"rules": ["INBOUND-55"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":{\"name\":\"ES256\"}}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-alg-uppercase-name",
+			"rules": ["INBOUND-05", "INBOUND-14"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"ALG\":\"ES256\",\"typ\":\"JWT\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-alg-repeated-null-last",
+			"rules": ["INBOUND-55", "INBOUND-15"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"alg\":null}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-crit-empty-list",
+			"rules": ["INBOUND-04"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"crit\":[]}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-crit-null",
+			"rules": ["INBOUND-04"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"crit\":null}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-crit-b64",
+			"rules": ["INBOUND-04"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"typ\":\"JWT\",\"b64\":false,\"crit\":[\"b64\"]}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-crit-unknown",
+			"rules": ["INBOUND-04"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"crit\":[\"exp\"],\"alg\":\"ES256\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-signature-empty",
+			"rules": ["INBOUND-56", "INBOUND-06"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"signature": ["empty"]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-signature-zero",
+			"rules": ["INBOUND-56", "INBOUND-06"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"signature": ["zero"]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-signature-flipped",
+			"rules": ["INBOUND-56", "INBOUND-06"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"signature": ["flip"]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-signature-padded",
+			"rules": ["INBOUND-56", "INBOUND-03"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"signature": ["pad"]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-signature-std-alphabet",
+			"rules": ["INBOUND-56", "INBOUND-03"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"signature": ["std-alphabet"]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-signature-trailing-bits",
+			"rules": ["INBOUND-56", "INBOUND-03"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"signature": ["trailing-bits"]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-signature-85-chars",
+			"rules": ["INBOUND-56", "INBOUND-03"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"signature": [
+						{
+							"truncate": 1
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-signature-63-bytes",
+			"rules": ["INBOUND-56", "INBOUND-06"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"signature": [
+						{
+							"truncate": 2
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-signature-66-bytes",
+			"rules": ["INBOUND-56", "INBOUND-06"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"signature": [
+						{
+							"append": "AA"
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-signature-inner-space",
+			"rules": ["INBOUND-56", "INBOUND-03"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"signature": [
+						{
+							"insert": " ",
+							"at": 40
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-signature-trailing-newline",
+			"rules": ["INBOUND-56", "INBOUND-03"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"transform": [
+						{
+							"append": "\n"
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			},
+			"note": "Tokens are used exactly as received, never trimmed."
+		},
+		{
+			"name": "inbound-booster-payload-empty-object",
+			"rules": ["INBOUND-13", "INBOUND-12"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "booster"
+			}
+		},
+		{
+			"name": "inbound-booster-root-null",
+			"rules": ["INBOUND-13", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":null,\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "booster"
+			}
+		},
+		{
+			"name": "inbound-booster-root-array",
+			"rules": ["INBOUND-13", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":[{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false}],\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "booster"
+			}
+		},
+		{
+			"name": "inbound-booster-root-string",
+			"rules": ["INBOUND-13", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":\"x\",\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "booster"
+			}
+		},
+		{
+			"name": "inbound-booster-root-boolean",
+			"rules": ["INBOUND-13", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":true,\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "booster"
+			}
+		},
+		{
+			"name": "inbound-booster-root-case-variant",
+			"rules": ["INBOUND-14", "INBOUND-13"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"Booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "booster"
+			}
+		},
+		{
+			"name": "inbound-booster-checkbet-token",
+			"rules": ["INBOUND-12", "INBOUND-13"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "booster"
+			},
+			"note": "A CheckBet payload cannot be replayed as a Booster."
+		},
+		{
+			"name": "inbound-booster-root-repeated-null-last",
+			"rules": ["INBOUND-15", "INBOUND-13"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"booster\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "booster"
+			},
+			"note": "A later null replaces the object."
+		},
+		{
+			"name": "inbound-booster-root-repeated-not-merged",
+			"rules": ["INBOUND-15"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"booster\":{\"gid\":${gid}}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "round"
+			},
+			"note": "The later object replaces the earlier one whole."
+		},
+		{
+			"name": "inbound-booster-gid-absent",
+			"rules": ["INBOUND-17", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "gid"
+			}
+		},
+		{
+			"name": "inbound-booster-gid-null",
+			"rules": ["INBOUND-17", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":null,\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-string",
+			"rules": ["INBOUND-17", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":\"acme:u-1:b-1\",\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-array",
+			"rules": ["INBOUND-17", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":[\"acme\",\"u-1\",\"b-1\",\"${sig:gid}\"],\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-empty-object",
+			"rules": ["INBOUND-17", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-partner-absent",
+			"rules": ["INBOUND-17", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-partner-null",
+			"rules": ["INBOUND-17", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":null,\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-partner-number",
+			"rules": ["INBOUND-17", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":7,\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-user-absent",
+			"rules": ["INBOUND-17", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-user-null",
+			"rules": ["INBOUND-17", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":null,\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-bet-number",
+			"rules": ["INBOUND-17", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":1,\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-bet-object",
+			"rules": ["INBOUND-17", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":{},\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-signature-absent",
+			"rules": ["INBOUND-17", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-signature-null",
+			"rules": ["INBOUND-17", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":null},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-partner-empty",
+			"rules": ["INBOUND-17", "INBOUND-18"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "gid.partner"
+			}
+		},
+		{
+			"name": "inbound-booster-gid-member-case-variant",
+			"rules": ["INBOUND-14", "INBOUND-17"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"Partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-name-case-variant",
+			"rules": ["INBOUND-14", "INBOUND-17"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"GID\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "gid"
+			}
+		},
+		{
+			"name": "inbound-booster-gid-repeated-not-merged",
+			"rules": ["INBOUND-15", "INBOUND-17"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"gid\":{\"partner\":\"acme\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-booster-round-absent",
+			"rules": ["INBOUND-33", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "inbound-booster-round-null",
+			"rules": ["INBOUND-33", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":null,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "inbound-booster-round-string",
+			"rules": ["INBOUND-33", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":\"2\",\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "inbound-booster-round-boolean",
+			"rules": ["INBOUND-33", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":true,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "inbound-booster-round-object",
+			"rules": ["INBOUND-33", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":{},\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "inbound-booster-round-zero",
+			"rules": ["INBOUND-34"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":0,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "inbound-booster-round-negative-zero",
+			"rules": ["INBOUND-34"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":-0,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "inbound-booster-round-negative",
+			"rules": ["INBOUND-34"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":-1,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "inbound-booster-round-fraction",
+			"rules": ["INBOUND-34", "INBOUND-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":1.5,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "inbound-booster-round-two-pow-53",
+			"rules": ["INBOUND-34", "INBOUND-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":9007199254740992,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "inbound-booster-round-rounds-to-two-pow-53",
+			"rules": ["INBOUND-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":9007199254740993,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "round"
+			},
+			"note": "The nearest binary64 value is 2^53, outside the range."
+		},
+		{
+			"name": "inbound-booster-round-overflow",
+			"rules": ["INBOUND-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":1e400,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "inbound-booster-round-underflow",
+			"rules": ["INBOUND-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":1e-400,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "round"
+			},
+			"note": "The text underflows to 0."
+		},
+		{
+			"name": "inbound-booster-round-case-variant",
+			"rules": ["INBOUND-14", "INBOUND-33"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"boost\":1.5,\"final\":false,\"jackpot\":false,\"Round\":2},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "inbound-booster-round-repeated-null-last",
+			"rules": ["INBOUND-15", "INBOUND-33"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"round\":null,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "inbound-booster-boost-absent",
+			"rules": ["INBOUND-36", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "boost"
+			}
+		},
+		{
+			"name": "inbound-booster-boost-null",
+			"rules": ["INBOUND-36", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":null,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "boost"
+			},
+			"note": "No default is substituted."
+		},
+		{
+			"name": "inbound-booster-boost-string",
+			"rules": ["INBOUND-36", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":\"1.5\",\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "boost"
+			}
+		},
+		{
+			"name": "inbound-booster-boost-array",
+			"rules": ["INBOUND-36", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":[1.5],\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "boost"
+			}
+		},
+		{
+			"name": "inbound-booster-boost-zero",
+			"rules": ["INBOUND-37"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":0,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "boost"
+			}
+		},
+		{
+			"name": "inbound-booster-boost-negative-zero",
+			"rules": ["INBOUND-37"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":-0.0,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "boost"
+			}
+		},
+		{
+			"name": "inbound-booster-boost-negative",
+			"rules": ["INBOUND-37"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":-1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "boost"
+			}
+		},
+		{
+			"name": "inbound-booster-boost-underflow",
+			"rules": ["INBOUND-37", "INBOUND-58"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1e-400,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "boost"
+			}
+		},
+		{
+			"name": "inbound-booster-boost-overflow",
+			"rules": ["INBOUND-37", "INBOUND-58"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1e400,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "boost"
+			}
+		},
+		{
+			"name": "inbound-booster-boost-negative-overflow",
+			"rules": ["INBOUND-37"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":-1e400,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "boost"
+			}
+		},
+		{
+			"name": "inbound-booster-final-absent",
+			"rules": ["INBOUND-39", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "final"
+			}
+		},
+		{
+			"name": "inbound-booster-final-null",
+			"rules": ["INBOUND-39", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":null,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "final"
+			},
+			"note": "null is not false."
+		},
+		{
+			"name": "inbound-booster-final-zero",
+			"rules": ["INBOUND-39", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":0,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "final"
+			}
+		},
+		{
+			"name": "inbound-booster-final-one",
+			"rules": ["INBOUND-39", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":1,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "final"
+			}
+		},
+		{
+			"name": "inbound-booster-final-string",
+			"rules": ["INBOUND-39", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":\"false\",\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "final"
+			}
+		},
+		{
+			"name": "inbound-booster-jackpot-absent",
+			"rules": ["INBOUND-39", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "jackpot"
+			}
+		},
+		{
+			"name": "inbound-booster-jackpot-null",
+			"rules": ["INBOUND-39", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":null},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "jackpot"
+			},
+			"note": "null is not false."
+		},
+		{
+			"name": "inbound-booster-jackpot-one",
+			"rules": ["INBOUND-39", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":1},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "jackpot"
+			}
+		},
+		{
+			"name": "inbound-booster-jackpot-string",
+			"rules": ["INBOUND-39", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":\"true\"},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "jackpot"
+			}
+		},
+		{
+			"name": "inbound-booster-iat-absent",
+			"rules": ["INBOUND-41", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-booster-iat-null",
+			"rules": ["INBOUND-41", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-booster-iat-string",
+			"rules": ["INBOUND-41", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":\"1761955200\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-booster-iat-boolean",
+			"rules": ["INBOUND-41", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":true}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-booster-iat-object",
+			"rules": ["INBOUND-41", "INBOUND-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":{}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-booster-iat-fraction",
+			"rules": ["INBOUND-41", "INBOUND-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}.5}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-booster-iat-two-pow-53",
+			"rules": ["INBOUND-41", "INBOUND-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":9007199254740992}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-booster-iat-negative-two-pow-53",
+			"rules": ["INBOUND-41", "INBOUND-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":-9007199254740992}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-booster-iat-1e20",
+			"rules": ["INBOUND-41", "INBOUND-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1e20}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-booster-iat-overflow",
+			"rules": ["INBOUND-41", "INBOUND-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1e400}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-booster-iat-inside-root",
+			"rules": ["INBOUND-41", "INBOUND-14"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false,\"iat\":${now-100}}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "iat"
+			},
+			"note": "iat is a top-level claim."
+		},
+		{
+			"name": "inbound-booster-iat-case-variant",
+			"rules": ["INBOUND-41", "INBOUND-14"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"IAT\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-booster-exp-now",
+			"rules": ["INBOUND-32", "KEYS-42", "INBOUND-43"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "exp"
+			},
+			"note": "exp equal to now has passed."
+		},
+		{
+			"name": "inbound-booster-exp-past",
+			"rules": ["INBOUND-32", "KEYS-42", "INBOUND-43"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":${now-20}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "exp"
+			}
+		},
+		{
+			"name": "inbound-booster-exp-fractional-past",
+			"rules": ["INBOUND-32", "KEYS-42", "INBOUND-43"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":${now-20}.5}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "exp"
+			}
+		},
+		{
+			"name": "inbound-booster-exp-null",
+			"rules": ["INBOUND-32", "KEYS-42", "INBOUND-43"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "exp"
+			}
+		},
+		{
+			"name": "inbound-booster-exp-string",
+			"rules": ["INBOUND-32", "KEYS-42", "INBOUND-43"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":\"${now+100}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "exp"
+			}
+		},
+		{
+			"name": "inbound-booster-exp-boolean",
+			"rules": ["INBOUND-32", "KEYS-42", "INBOUND-43"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":true}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "exp"
+			}
+		},
+		{
+			"name": "inbound-booster-nbf-future",
+			"rules": ["INBOUND-32", "KEYS-42", "INBOUND-43"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"nbf\":${now+20}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "nbf"
+			}
+		},
+		{
+			"name": "inbound-booster-nbf-null",
+			"rules": ["INBOUND-32", "KEYS-42", "INBOUND-43"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"nbf\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "nbf"
+			}
+		},
+		{
+			"name": "inbound-booster-nbf-string",
+			"rules": ["INBOUND-32", "KEYS-42", "INBOUND-43"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"nbf\":\"${now-100}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "nbf"
+			}
+		},
+		{
+			"name": "inbound-booster-order-header-object-before-signature",
+			"rules": ["INBOUND-32", "INBOUND-08"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "null",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"signature": ["empty"]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-order-header-bytes-before-alg",
+			"rules": ["INBOUND-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"HS256\",\"kid\":\"${hex:ff}\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-order-header-surrogate-before-alg",
+			"rules": ["INBOUND-32", "INBOUND-28"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"HS256\",\"kid\":\"\\ud800\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-order-header-bom-before-crit",
+			"rules": ["INBOUND-32", "INBOUND-11"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "${hex:efbbbf}{\"alg\":\"ES256\",\"crit\":[]}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-order-alg-before-payload",
+			"rules": ["INBOUND-32", "INBOUND-08"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"HS256\"}",
+					"payload": "null"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-order-crit-before-payload",
+			"rules": ["INBOUND-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"crit\":[\"exp\"]}",
+					"payload": "${hex:efbbbf}{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-order-signature-before-payload-json",
+			"rules": ["INBOUND-32", "INBOUND-08"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "[]",
+					"signature": ["flip"]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-order-signature-before-payload-encoding",
+			"rules": ["INBOUND-32", "INBOUND-08"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1761955200}",
+					"payloadSegment": ["pad"],
+					"signature": ["empty"]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-order-signature-before-lone-surrogate",
+			"rules": ["INBOUND-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\\ud800\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"signature": ["flip"]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-order-signature-before-claims",
+			"rules": ["INBOUND-32", "INBOUND-08"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"signature": ["zero"]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-order-signature-before-gid",
+			"rules": ["INBOUND-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid:gid2},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"key": "other"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			},
+			"note": "A JWS signature failure carries invalid_signature without invalid_gid."
+		},
+		{
+			"name": "inbound-booster-order-payload-before-claims",
+			"rules": ["INBOUND-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"note\":\"\\ud800\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-order-root-before-iat",
+			"rules": ["INBOUND-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"other\":{}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "booster"
+			}
+		},
+		{
+			"name": "inbound-booster-order-gid-before-round",
+			"rules": ["INBOUND-32", "INBOUND-17"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"round\":null,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "gid"
+			}
+		},
+		{
+			"name": "inbound-booster-order-gid-shape-before-round",
+			"rules": ["INBOUND-32", "INBOUND-17"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":null,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-booster-order-gid-shape-before-partner-empty",
+			"rules": ["INBOUND-32", "INBOUND-17"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"\",\"user\":null,\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-booster-order-partner-empty-before-round",
+			"rules": ["INBOUND-32", "INBOUND-17"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":null,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "gid.partner"
+			}
+		},
+		{
+			"name": "inbound-booster-order-round-before-boost",
+			"rules": ["INBOUND-32", "INBOUND-33"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":null,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "inbound-booster-order-boost-before-final",
+			"rules": ["INBOUND-32", "INBOUND-36"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":0,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "boost"
+			}
+		},
+		{
+			"name": "inbound-booster-order-final-before-jackpot",
+			"rules": ["INBOUND-32", "INBOUND-39"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":null},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "final"
+			}
+		},
+		{
+			"name": "inbound-booster-order-jackpot-before-iat",
+			"rules": ["INBOUND-32", "INBOUND-39"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false},\"iat\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "jackpot"
+			}
+		},
+		{
+			"name": "inbound-booster-order-iat-before-exp",
+			"rules": ["INBOUND-32", "INBOUND-41", "INBOUND-43"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":null,\"exp\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-booster-order-iat-absent-before-nbf",
+			"rules": ["INBOUND-32", "INBOUND-41", "INBOUND-43"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"nbf\":${now+20}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-booster-order-exp-before-nbf",
+			"rules": ["INBOUND-32", "KEYS-42", "INBOUND-43"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"nbf\":${now+20},\"exp\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "exp"
+			}
+		},
+		{
+			"name": "inbound-booster-order-claims-before-gid-signature",
+			"rules": ["INBOUND-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid:gid2},\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "inbound-booster-order-exp-before-gid-signature",
+			"rules": ["INBOUND-32", "KEYS-42", "INBOUND-43"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":${now-20}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "exp"
+			}
+		},
+		{
+			"name": "inbound-booster-order-iat-before-gid-signature-form",
+			"rules": ["INBOUND-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:std}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false}}"
+				}
+			},
+			"sigs": {
+				"std": {
+					"fixed": "Qdck8JgX/ak+emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-booster-gid-signed-by-other-partner",
+			"rules": ["INBOUND-26", "INBOUND-46"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid:gid2},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-partner-key-mismatch",
+			"rules": ["INBOUND-26", "INBOUND-46"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"partnerKeys": ["partner2"]
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-checked-against-partner-keys-only",
+			"rules": ["INBOUND-26", "INBOUND-46"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"partnerKeys": ["boostx"]
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			},
+			"note": "The BoostX key verifies the JWS, never the GID."
+		},
+		{
+			"name": "inbound-booster-gid-signature-std-alphabet",
+			"rules": ["INBOUND-25", "INBOUND-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:v}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"v": {
+					"fixed": "Qdck8JgX/ak+emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-signature-padded",
+			"rules": ["INBOUND-25", "INBOUND-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:v}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"v": {
+					"fixed": "Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw=="
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-signature-trailing-bits",
+			"rules": ["INBOUND-25", "INBOUND-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:v}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"v": {
+					"fixed": "Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tx"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			},
+			"note": "An unused trailing bit is set."
+		},
+		{
+			"name": "inbound-booster-gid-signature-85-chars",
+			"rules": ["INBOUND-25", "INBOUND-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:v}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"v": {
+					"fixed": "Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6t"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-signature-87-chars",
+			"rules": ["INBOUND-25", "INBOUND-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:v}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"v": {
+					"fixed": "Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6twA"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-signature-leading-space",
+			"rules": ["INBOUND-25", "INBOUND-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:v}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"v": {
+					"fixed": " Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-signature-zero",
+			"rules": ["INBOUND-25", "INBOUND-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:v}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"v": {
+					"fixed": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			},
+			"note": "Canonical form, but it does not verify."
+		},
+		{
+			"name": "inbound-booster-gid-signature-trailing-newline",
+			"rules": ["INBOUND-25", "INBOUND-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw\\n\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			},
+			"note": "The signature ends with an escaped line feed."
+		},
+		{
+			"name": "inbound-booster-gid-signature-empty",
+			"rules": ["INBOUND-25", "INBOUND-26", "INBOUND-17"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			},
+			"note": "An empty signature passes the shape check and fails the form check."
+		},
+		{
+			"name": "inbound-booster-gid-user-changed",
+			"rules": ["INBOUND-27", "INBOUND-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-2\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-partner-case-changed",
+			"rules": ["INBOUND-20", "INBOUND-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"ACME\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			},
+			"note": "No case folding before verification."
+		},
+		{
+			"name": "inbound-booster-gid-bet-not-trimmed",
+			"rules": ["INBOUND-20", "INBOUND-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1 \",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-signature-over-reordered-members",
+			"rules": ["INBOUND-27", "INBOUND-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:reordered}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"reordered": {
+					"key": "partner",
+					"text": "{\"user\":\"u-1\",\"partner\":\"acme\",\"bet\":\"b-1\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-signature-over-spaced-json",
+			"rules": ["INBOUND-27", "INBOUND-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:spaced}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"spaced": {
+					"key": "partner",
+					"text": "{\"partner\": \"acme\", \"user\": \"u-1\", \"bet\": \"b-1\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-gid-signature-over-html-escaped-json",
+			"rules": ["INBOUND-27", "INBOUND-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u<\",\"bet\":\"b-1\",\"signature\":\"${sig:html}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"html": {
+					"key": "partner",
+					"text": "{\"partner\":\"acme\",\"user\":\"u\\u003c\",\"bet\":\"b-1\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			},
+			"note": "The canonical bytes write < literally, so a signature over the escaped form does not verify."
+		},
+		{
+			"name": "inbound-checkbet-accepted",
+			"rules": ["INBOUND-32", "INBOUND-42"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-checkbet-other-root-members-ignored",
+			"rules": ["INBOUND-16", "INBOUND-32"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid},\"round\":null,\"final\":\"x\"},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"iat": "${now-100}"
+				}
+			},
+			"note": "A CheckBet has no fields of its own."
+		},
+		{
+			"name": "inbound-checkbet-iat-old",
+			"rules": ["INBOUND-42"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":1}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"iat": 1
+				}
+			},
+			"note": "No age check."
+		},
+		{
+			"name": "inbound-checkbet-iat-exponent-spelling",
+			"rules": ["INBOUND-35", "INBOUND-41"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":1.7e9}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"iat": 1700000000
+				}
+			}
+		},
+		{
+			"name": "inbound-checkbet-exp-future-nbf-now",
+			"rules": ["INBOUND-32", "KEYS-42", "INBOUND-43"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100},\"exp\":${now+20},\"nbf\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-checkbet-partner-keys-second-verifies",
+			"rules": ["INBOUND-29"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				},
+				"partnerKeys": ["@unusable", "partner2", "partner"]
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-checkbet-header-alg-only",
+			"rules": ["INBOUND-04"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\"}",
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "inbound-checkbet-boostx-key-unusable",
+			"rules": ["INBOUND-23", "INBOUND-31"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				},
+				"boostxKey": "@unusable"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-partner-keys-empty",
+			"rules": ["INBOUND-30", "INBOUND-31"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				},
+				"partnerKeys": []
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-order-partner-keys-before-token",
+			"rules": ["INBOUND-31"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"raw": "a.b.c"
+				},
+				"partnerKeys": ["@unusable"]
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-order-both-keys-unusable",
+			"rules": ["INBOUND-59", "INBOUND-31"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				},
+				"boostxKey": "@unusable",
+				"partnerKeys": ["@unusable"]
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-token-two-segments",
+			"rules": ["INBOUND-02"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}",
+					"transform": [
+						{
+							"segments": 2
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-header-array",
+			"rules": ["INBOUND-05"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"header": "[]",
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-header-lone-surrogate",
+			"rules": ["INBOUND-28"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"typ\":\"\\udfff\"}",
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-alg-other",
+			"rules": ["INBOUND-55"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"RS256\"}",
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-crit",
+			"rules": ["INBOUND-04"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"crit\":[]}",
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-signature-flipped",
+			"rules": ["INBOUND-06", "INBOUND-46"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}",
+					"signature": ["flip"]
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-signature-padded",
+			"rules": ["INBOUND-56"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}",
+					"signature": ["pad"]
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-signed-by-partner-key",
+			"rules": ["INBOUND-06"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}",
+					"key": "partner"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-payload-bom",
+			"rules": ["INBOUND-11"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "${hex:efbbbf}{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-payload-invalid-utf8",
+			"rules": ["INBOUND-10"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100},\"note\":\"${hex:c3}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			},
+			"note": "A truncated two-byte sequence."
+		},
+		{
+			"name": "inbound-checkbet-payload-lone-surrogate",
+			"rules": ["INBOUND-28"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"\\udbff\",\"signature\":\"${sig:gid}\"}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-payload-trailing-data",
+			"rules": ["INBOUND-09"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}} x"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-booster-token",
+			"rules": ["INBOUND-12", "INBOUND-13"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "missing_claim"],
+				"field": "checkbet"
+			},
+			"note": "A Booster payload cannot be replayed as a CheckBet."
+		},
+		{
+			"name": "inbound-checkbet-root-null",
+			"rules": ["INBOUND-13"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":null,\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_claim"],
+				"field": "checkbet"
+			}
+		},
+		{
+			"name": "inbound-checkbet-root-array",
+			"rules": ["INBOUND-13"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":[],\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_claim"],
+				"field": "checkbet"
+			}
+		},
+		{
+			"name": "inbound-checkbet-root-case-variant",
+			"rules": ["INBOUND-14"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"CheckBet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "missing_claim"],
+				"field": "checkbet"
+			}
+		},
+		{
+			"name": "inbound-checkbet-root-repeated-null-last",
+			"rules": ["INBOUND-15"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100},\"checkbet\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_claim"],
+				"field": "checkbet"
+			}
+		},
+		{
+			"name": "inbound-checkbet-gid-absent",
+			"rules": ["INBOUND-17"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "missing_claim"],
+				"field": "gid"
+			}
+		},
+		{
+			"name": "inbound-checkbet-gid-null",
+			"rules": ["INBOUND-17"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":null},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-gid-bet-absent",
+			"rules": ["INBOUND-17"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"signature\":\"${sig:gid}\"}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-gid-signature-number",
+			"rules": ["INBOUND-17"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":0}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-gid-partner-empty",
+			"rules": ["INBOUND-17", "INBOUND-18"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "missing_claim"],
+				"field": "gid.partner"
+			}
+		},
+		{
+			"name": "inbound-checkbet-iat-absent",
+			"rules": ["INBOUND-41"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "missing_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-checkbet-iat-null",
+			"rules": ["INBOUND-41"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-checkbet-iat-fraction",
+			"rules": ["INBOUND-41", "INBOUND-35"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":1.5}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-checkbet-exp-now",
+			"rules": ["INBOUND-32", "KEYS-42", "INBOUND-43"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100},\"exp\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_claim"],
+				"field": "exp"
+			}
+		},
+		{
+			"name": "inbound-checkbet-nbf-future",
+			"rules": ["INBOUND-32", "KEYS-42", "INBOUND-43"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100},\"nbf\":${now+20}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_claim"],
+				"field": "nbf"
+			}
+		},
+		{
+			"name": "inbound-checkbet-exp-null",
+			"rules": ["INBOUND-32", "KEYS-42", "INBOUND-43"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100},\"exp\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_claim"],
+				"field": "exp"
+			}
+		},
+		{
+			"name": "inbound-checkbet-gid-signed-by-other-partner",
+			"rules": ["INBOUND-26", "INBOUND-46"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid:gid2}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-gid-signature-padded",
+			"rules": ["INBOUND-25", "INBOUND-26"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:v}\"}},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"v": {
+					"fixed": "Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw="
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-order-gid-before-iat",
+			"rules": ["INBOUND-32", "INBOUND-17"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "missing_claim"],
+				"field": "gid"
+			}
+		},
+		{
+			"name": "inbound-checkbet-order-iat-before-exp",
+			"rules": ["INBOUND-32", "INBOUND-43"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":\"x\",\"exp\":${now-20}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-checkbet-order-claims-before-gid-signature",
+			"rules": ["INBOUND-32"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid:gid2}}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "missing_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-checkbet-order-signature-before-payload",
+			"rules": ["INBOUND-32", "INBOUND-08"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "null",
+					"signature": ["flip"]
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-order-alg-before-claims",
+			"rules": ["INBOUND-32"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"header": "{\"typ\":\"JWT\"}",
+					"payload": "{}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_signature"]
+			}
+		},
+		{
+			"name": "inbound-booster-extract-accepted",
+			"rules": ["INBOUND-21"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-extract-ignores-signature",
+			"rules": ["INBOUND-21"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"signature": ["flip"]
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			},
+			"note": "The signature segment is never read."
+		},
+		{
+			"name": "inbound-booster-extract-ignores-empty-signature",
+			"rules": ["INBOUND-21"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"signature": ["empty"]
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-extract-ignores-header-json",
+			"rules": ["INBOUND-21"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"header": "[1]",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			},
+			"note": "The header is never read."
+		},
+		{
+			"name": "inbound-booster-extract-ignores-header-encoding",
+			"rules": ["INBOUND-21"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"headerSegment": [
+						{
+							"insert": "!",
+							"at": 0
+						}
+					],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-extract-ignores-alg-and-crit",
+			"rules": ["INBOUND-21"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"none\",\"crit\":[]}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-extract-no-key-needed",
+			"rules": ["INBOUND-21"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"key": "other"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-extract-gid-signature-not-checked",
+			"rules": ["INBOUND-21", "INBOUND-17"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			},
+			"note": "Extraction runs no GID signature checks."
+		},
+		{
+			"name": "inbound-booster-extract-gid-by-other-partner",
+			"rules": ["INBOUND-21"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid:gid2},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-extract-partner-verbatim",
+			"rules": ["INBOUND-21", "INBOUND-20"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\" ACME:1 \",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": " ACME:1 "
+				}
+			},
+			"note": "The id is returned exactly, with no trimming or case folding."
+		},
+		{
+			"name": "inbound-booster-extract-partner-escaped",
+			"rules": ["INBOUND-21", "INBOUND-20"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"\\u0061cm\\u00e9\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acmé"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-extract-gid-repeated-last-wins",
+			"rules": ["INBOUND-21", "INBOUND-15", "INBOUND-61"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"zeta\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false,\"gid\":${gid}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			},
+			"note": "The partner used for key lookup is the one parsing reads."
+		},
+		{
+			"name": "inbound-booster-extract-partner-case-variant-ignored",
+			"rules": ["INBOUND-21", "INBOUND-14"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"Partner\":\"zeta\",\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\",\"PARTNER\":\"zeta\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-extract-token-two-segments",
+			"rules": ["INBOUND-21", "INBOUND-02"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"transform": [
+						{
+							"segments": 2
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-extract-token-four-segments",
+			"rules": ["INBOUND-21", "INBOUND-02"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"transform": [
+						{
+							"append": ".x"
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-extract-token-empty",
+			"rules": ["INBOUND-21", "INBOUND-02"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"raw": ""
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-extract-payload-padded",
+			"rules": ["INBOUND-21", "INBOUND-03"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1761955200}",
+					"payloadSegment": ["pad"]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-extract-payload-trailing-bits",
+			"rules": ["INBOUND-21", "INBOUND-03"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1761955200}",
+					"payloadSegment": ["trailing-bits"]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-extract-payload-invalid-utf8",
+			"rules": ["INBOUND-21", "INBOUND-10"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"note\":\"${hex:ff}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-extract-payload-bom",
+			"rules": ["INBOUND-21", "INBOUND-11"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "${hex:efbbbf}{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-extract-payload-lone-surrogate",
+			"rules": ["INBOUND-21", "INBOUND-28"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"\\ud800\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-extract-payload-trailing-data",
+			"rules": ["INBOUND-21", "INBOUND-09"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}{}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-extract-payload-array",
+			"rules": ["INBOUND-21", "INBOUND-09"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "[{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}]"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-booster-extract-root-absent",
+			"rules": ["INBOUND-21", "INBOUND-13"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "booster"
+			}
+		},
+		{
+			"name": "inbound-booster-extract-root-null",
+			"rules": ["INBOUND-21", "INBOUND-13"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":null,\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "booster"
+			}
+		},
+		{
+			"name": "inbound-booster-extract-gid-absent",
+			"rules": ["INBOUND-21", "INBOUND-17"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "gid"
+			}
+		},
+		{
+			"name": "inbound-booster-extract-gid-null",
+			"rules": ["INBOUND-21", "INBOUND-17"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":null,\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-booster-extract-gid-signature-absent",
+			"rules": ["INBOUND-21", "INBOUND-17"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-booster-extract-gid-user-null",
+			"rules": ["INBOUND-21", "INBOUND-17"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":null,\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-booster-extract-partner-empty",
+			"rules": ["INBOUND-21", "INBOUND-18"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "gid.partner"
+			}
+		},
+		{
+			"name": "inbound-booster-extract-round-absent",
+			"rules": ["INBOUND-21", "INBOUND-33"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "inbound-booster-extract-round-null",
+			"rules": ["INBOUND-21", "INBOUND-33"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":null,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "inbound-booster-extract-round-zero",
+			"rules": ["INBOUND-21", "INBOUND-34"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":0,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "inbound-booster-extract-round-fraction-spelling",
+			"rules": ["INBOUND-21", "INBOUND-35"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2.0,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			}
+		},
+		{
+			"name": "inbound-booster-extract-boost-absent",
+			"rules": ["INBOUND-21", "INBOUND-36"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "boost"
+			}
+		},
+		{
+			"name": "inbound-booster-extract-boost-overflow",
+			"rules": ["INBOUND-21", "INBOUND-37"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1e400,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "boost"
+			}
+		},
+		{
+			"name": "inbound-booster-extract-boost-negative",
+			"rules": ["INBOUND-21", "INBOUND-37"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":-2,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "boost"
+			}
+		},
+		{
+			"name": "inbound-booster-extract-final-null",
+			"rules": ["INBOUND-21", "INBOUND-39"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":null,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "final"
+			}
+		},
+		{
+			"name": "inbound-booster-extract-jackpot-absent",
+			"rules": ["INBOUND-21", "INBOUND-39"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "jackpot"
+			}
+		},
+		{
+			"name": "inbound-booster-extract-iat-absent",
+			"rules": ["INBOUND-21", "INBOUND-41"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-booster-extract-iat-fraction",
+			"rules": ["INBOUND-21", "INBOUND-41"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1.5}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-booster-extract-exp-past",
+			"rules": ["INBOUND-21", "KEYS-42", "INBOUND-43"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":${now-20}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "exp"
+			}
+		},
+		{
+			"name": "inbound-booster-extract-nbf-future",
+			"rules": ["INBOUND-21", "KEYS-42", "INBOUND-43"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"nbf\":${now+20}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "nbf"
+			}
+		},
+		{
+			"name": "inbound-booster-extract-order-root-before-iat",
+			"rules": ["INBOUND-21", "INBOUND-32"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"iat\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "booster"
+			}
+		},
+		{
+			"name": "inbound-booster-extract-order-partner-before-round",
+			"rules": ["INBOUND-21", "INBOUND-32"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":null,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "gid.partner"
+			}
+		},
+		{
+			"name": "inbound-booster-extract-order-round-before-iat",
+			"rules": ["INBOUND-21", "INBOUND-32"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":0,\"boost\":1.5,\"final\":false,\"jackpot\":false}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "inbound-booster-extract-order-payload-before-claims",
+			"rules": ["INBOUND-21", "INBOUND-32"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "${hex:efbbbf}{}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-extract-accepted",
+			"rules": ["INBOUND-21"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			}
+		},
+		{
+			"name": "inbound-checkbet-extract-ignores-signature",
+			"rules": ["INBOUND-21"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}",
+					"signature": ["zero"]
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			}
+		},
+		{
+			"name": "inbound-checkbet-extract-ignores-header",
+			"rules": ["INBOUND-21"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"HS256\"}",
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			}
+		},
+		{
+			"name": "inbound-checkbet-extract-gid-signature-not-checked",
+			"rules": ["INBOUND-21"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"x\"}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			}
+		},
+		{
+			"name": "inbound-checkbet-extract-token-two-segments",
+			"rules": ["INBOUND-21", "INBOUND-02"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}",
+					"transform": [
+						{
+							"segments": 2
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-extract-payload-invalid-utf8",
+			"rules": ["INBOUND-21", "INBOUND-10"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u${hex:80}\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-extract-payload-lone-surrogate",
+			"rules": ["INBOUND-21", "INBOUND-28"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100},\"note\":\"\\ude00\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-extract-booster-token",
+			"rules": ["INBOUND-21", "INBOUND-12"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "missing_claim"],
+				"field": "checkbet"
+			}
+		},
+		{
+			"name": "inbound-checkbet-extract-gid-user-null",
+			"rules": ["INBOUND-21", "INBOUND-17"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":null,\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_gid"]
+			}
+		},
+		{
+			"name": "inbound-checkbet-extract-partner-empty",
+			"rules": ["INBOUND-21", "INBOUND-18"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "missing_claim"],
+				"field": "gid.partner"
+			}
+		},
+		{
+			"name": "inbound-checkbet-extract-iat-absent",
+			"rules": ["INBOUND-21", "INBOUND-41"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "missing_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-checkbet-extract-iat-string",
+			"rules": ["INBOUND-21", "INBOUND-41"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":\"0\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "inbound-checkbet-extract-exp-now",
+			"rules": ["INBOUND-21", "KEYS-42", "INBOUND-43"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100},\"exp\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_claim"],
+				"field": "exp"
+			}
+		},
+		{
+			"name": "inbound-checkbet-extract-nbf-null",
+			"rules": ["INBOUND-21", "KEYS-42", "INBOUND-43"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100},\"nbf\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_claim"],
+				"field": "nbf"
+			}
+		},
+		{
+			"name": "inbound-http-set-boost-claim-refused-before-lookup",
+			"rules": ["INBOUND-21", "INBOUND-47", "HTTP-23"],
+			"op": "http.serve",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":null,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"endpoint": "set-boost"
+			},
+			"want": {
+				"status": 400,
+				"error": "invalid booster token",
+				"keyStoreCalled": false,
+				"betStoreCalled": false
+			}
+		},
+		{
+			"name": "inbound-http-check-bet-exp-refused-before-lookup",
+			"rules": ["INBOUND-21", "INBOUND-47", "KEYS-42", "INBOUND-43"],
+			"op": "http.serve",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100},\"exp\":${now-20}}"
+				},
+				"endpoint": "check-bet"
+			},
+			"want": {
+				"status": 400,
+				"error": "invalid checkbet token",
+				"keyStoreCalled": false,
+				"betStoreCalled": false
+			}
+		},
+		{
+			"name": "inbound-http-set-boost-token-null",
+			"rules": ["INBOUND-01", "INBOUND-47"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "set-boost",
+				"request": {
+					"body": "{\"boosterJWT\":null}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"error": "invalid booster token",
+				"keyStoreCalled": false,
+				"betStoreCalled": false
+			},
+			"note": "A null token member reads as the empty token."
+		},
+		{
+			"name": "inbound-http-check-bet-token-absent",
+			"rules": ["INBOUND-01", "INBOUND-47", "HTTP-12"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "check-bet",
+				"request": {
+					"body": "{\"checkBetJWT\":\"x\"}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"error": "invalid checkbet token",
+				"keyStoreCalled": false,
+				"betStoreCalled": false
+			},
+			"note": "Only the exact member name checkbetJWT is read."
+		},
+		{
+			"name": "inbound-http-set-boost-unknown-partner",
+			"rules": ["INBOUND-22", "INBOUND-57"],
+			"op": "http.serve",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"zeta\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"endpoint": "set-boost"
+			},
+			"want": {
+				"status": 400,
+				"error": "unknown partner \"zeta\"",
+				"keyStoreCalled": true,
+				"betStoreCalled": false
+			}
+		},
+		{
+			"name": "inbound-http-check-bet-unknown-partner-escaped",
+			"rules": ["INBOUND-22", "INBOUND-57"],
+			"op": "http.serve",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"z<\\\"&\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"}},\"iat\":${now-100}}"
+				},
+				"endpoint": "check-bet"
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "unknown partner \"z",
+				"keyStoreCalled": true,
+				"betStoreCalled": false
+			},
+			"note": "The id is quoted; how its characters are escaped is free."
+		},
+		{
+			"name": "inbound-http-set-boost-keys-before-signature",
+			"rules": ["INBOUND-31", "INBOUND-47", "HTTP-26"],
+			"op": "http.serve",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"signature": ["flip"]
+				},
+				"endpoint": "set-boost",
+				"keyStore": {
+					"acme": {
+						"partnerPublicKeys": ["@unusable"],
+						"partnerPrivateKey": "partner",
+						"boostxPublicKey": "boostx"
+					}
+				}
+			},
+			"want": {
+				"status": 500,
+				"error": "failed to verify token",
+				"keyStoreCalled": true,
+				"betStoreCalled": false
+			}
+		},
+		{
+			"name": "inbound-http-set-boost-old-iat-reaches-store",
+			"rules": ["INBOUND-51", "INBOUND-42"],
+			"op": "http.serve",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1}"
+				},
+				"endpoint": "set-boost"
+			},
+			"want": {
+				"status": 200,
+				"body": {
+					"result": {
+						"ok": true
+					}
+				},
+				"keyStoreCalled": true,
+				"betStoreCalled": true,
+				"setBoostArg": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": 1
+				}
+			},
+			"note": "No age check: a retried or replayed round reaches the store."
+		},
+		{
+			"name": "inbound-http-set-boost-round-rejected",
+			"rules": ["INBOUND-51"],
+			"op": "http.serve",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"endpoint": "set-boost",
+				"betStore": {
+					"setBoost": "reject"
+				}
+			},
+			"want": {
+				"status": 400,
+				"error": "round rejected",
+				"keyStoreCalled": true,
+				"betStoreCalled": true
+			}
+		},
+		{
+			"name": "inbound-http-set-boost-store-error",
+			"rules": ["INBOUND-51"],
+			"op": "http.serve",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"endpoint": "set-boost",
+				"betStore": {
+					"setBoost": "error"
+				}
+			},
+			"want": {
+				"status": 500,
+				"error": "failed to set boost",
+				"keyStoreCalled": true,
+				"betStoreCalled": true
+			}
+		}
+	]
+}

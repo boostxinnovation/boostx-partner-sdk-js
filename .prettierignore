@@ -1,0 +1,12 @@
+dist/
+coverage/
+package-lock.json
+
+# the spec vectors are a byte-for-byte mirror of the spec repository, checked by npm run check:spec
+test/spec/
+
+# documentation is out of Prettier's scope
+*.md
+
+# agent tooling
+.claude/

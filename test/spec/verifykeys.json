@@ -1,0 +1,5968 @@
+{
+	"group": "verifykeys",
+	"cases": [
+		{
+			"name": "verifykeys-create-request-accepted",
+			"rules": ["VERIFYKEYS-06", "VERIFYKEYS-08", "VERIFYKEYS-47"],
+			"op": "verifykeys.createRequest",
+			"input": {
+				"partnerID": "acme",
+				"nonce": 1642938715
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"verifyKeys": {
+							"nonce": 1642938715
+						},
+						"iss": "boostx",
+						"aud": "acme",
+						"iat": "${now}"
+					},
+					"absent": ["exp", "nbf"]
+				}
+			},
+			"note": "The implicit builder check pins the header members alg ES256 and typ JWT."
+		},
+		{
+			"name": "verifykeys-create-response-accepted",
+			"rules": ["VERIFYKEYS-07", "VERIFYKEYS-69", "VERIFYKEYS-08", "VERIFYKEYS-47"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"partnerID": "acme",
+				"nonce": 1642938715
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"verifyKeys": {
+							"nonce": 1642938715
+						},
+						"iss": "acme",
+						"aud": "boostx",
+						"iat": "${now}"
+					},
+					"absent": ["exp", "nbf"]
+				}
+			},
+			"note": "The implicit builder check pins the header members alg ES256 and typ JWT."
+		},
+		{
+			"name": "verifykeys-create-request-nonce-min",
+			"rules": ["VERIFYKEYS-41", "VERIFYKEYS-48"],
+			"op": "verifykeys.createRequest",
+			"input": {
+				"partnerID": "acme",
+				"nonce": 1
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"verifyKeys": {
+							"nonce": 1
+						},
+						"iss": "boostx",
+						"aud": "acme",
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "verifykeys-create-response-nonce-max",
+			"rules": ["VERIFYKEYS-41", "VERIFYKEYS-48"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"partnerID": "acme",
+				"nonce": 2147483647
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"verifyKeys": {
+							"nonce": 2147483647
+						},
+						"iss": "acme",
+						"aud": "boostx",
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "verifykeys-create-response-nonce-zero",
+			"rules": ["VERIFYKEYS-41", "VERIFYKEYS-48"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"partnerID": "acme",
+				"nonce": 0
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "nonce"
+			}
+		},
+		{
+			"name": "verifykeys-create-request-nonce-zero",
+			"rules": ["VERIFYKEYS-41", "VERIFYKEYS-48"],
+			"op": "verifykeys.createRequest",
+			"input": {
+				"partnerID": "acme",
+				"nonce": 0
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "nonce"
+			}
+		},
+		{
+			"name": "verifykeys-create-response-nonce-negative-zero",
+			"rules": ["VERIFYKEYS-48"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"partnerID": "acme",
+				"nonce": {
+					"$number": "-0"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "nonce"
+			},
+			"note": "Negative zero is the value 0."
+		},
+		{
+			"name": "verifykeys-create-response-nonce-negative",
+			"rules": ["VERIFYKEYS-48"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"partnerID": "acme",
+				"nonce": -1
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "nonce"
+			}
+		},
+		{
+			"name": "verifykeys-create-response-nonce-int32-min",
+			"rules": ["VERIFYKEYS-48"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"partnerID": "acme",
+				"nonce": -2147483648
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "nonce"
+			}
+		},
+		{
+			"name": "verifykeys-create-response-nonce-above-max",
+			"rules": ["VERIFYKEYS-48"],
+			"needs": ["fixed-int"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"partnerID": "acme",
+				"nonce": 2147483648
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "nonce"
+			},
+			"note": "A runner whose nonce parameter is a 32-bit integer skips this case."
+		},
+		{
+			"name": "verifykeys-create-response-nonce-fraction",
+			"rules": ["VERIFYKEYS-48"],
+			"needs": ["fixed-int"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"partnerID": "acme",
+				"nonce": 1.5
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "nonce"
+			},
+			"note": "A runner whose nonce parameter is a 32-bit integer skips this case."
+		},
+		{
+			"name": "verifykeys-create-response-nonce-nan",
+			"rules": ["VERIFYKEYS-48"],
+			"needs": ["non-finite"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"partnerID": "acme",
+				"nonce": {
+					"$number": "NaN"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "nonce"
+			},
+			"note": "A runner whose nonce parameter is a 32-bit integer skips this case."
+		},
+		{
+			"name": "verifykeys-create-response-nonce-string",
+			"rules": ["VERIFYKEYS-48"],
+			"needs": ["untyped-number"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"partnerID": "acme",
+				"nonce": "7"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "nonce"
+			},
+			"note": "A string is not a number. A runner whose nonce parameter is a 32-bit integer skips this case."
+		},
+		{
+			"name": "verifykeys-create-response-nonce-null",
+			"rules": ["VERIFYKEYS-48"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"partnerID": "acme",
+				"nonce": null
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "nonce"
+			},
+			"note": "An absent required number is invalid_claim."
+		},
+		{
+			"name": "verifykeys-create-response-nonce-left-out",
+			"rules": ["VERIFYKEYS-48"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"partnerID": "acme"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "nonce"
+			},
+			"note": "An absent required number is invalid_claim."
+		},
+		{
+			"name": "verifykeys-create-response-partner-id-empty",
+			"rules": ["VERIFYKEYS-09"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"partnerID": "",
+				"nonce": 7
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partnerID"
+			}
+		},
+		{
+			"name": "verifykeys-create-response-partner-id-null",
+			"rules": ["VERIFYKEYS-09"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"partnerID": null,
+				"nonce": 7
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partnerID"
+			},
+			"note": "null reads as absent."
+		},
+		{
+			"name": "verifykeys-create-response-partner-id-boostx",
+			"rules": ["VERIFYKEYS-09", "VERIFYKEYS-08"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"partnerID": "boostx",
+				"nonce": 7
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partnerID"
+			}
+		},
+		{
+			"name": "verifykeys-create-request-partner-id-boostx",
+			"rules": ["VERIFYKEYS-09", "VERIFYKEYS-08"],
+			"op": "verifykeys.createRequest",
+			"input": {
+				"partnerID": "boostx",
+				"nonce": 7
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partnerID"
+			}
+		},
+		{
+			"name": "verifykeys-create-request-partner-id-empty",
+			"rules": ["VERIFYKEYS-09"],
+			"op": "verifykeys.createRequest",
+			"input": {
+				"partnerID": "",
+				"nonce": 7
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partnerID"
+			}
+		},
+		{
+			"name": "verifykeys-create-request-partner-id-case-variant",
+			"rules": ["VERIFYKEYS-09", "VERIFYKEYS-08"],
+			"op": "verifykeys.createRequest",
+			"input": {
+				"partnerID": "BOOSTX",
+				"nonce": 7
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"verifyKeys": {
+							"nonce": 7
+						},
+						"iss": "boostx",
+						"aud": "BOOSTX",
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "The reserved id is compared byte for byte, so BOOSTX is not reserved."
+		},
+		{
+			"name": "verifykeys-create-response-key-null",
+			"rules": ["VERIFYKEYS-49", "KEYS-19"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"key": null,
+				"partnerID": "acme",
+				"nonce": 7
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "verifykeys-create-response-key-unusable",
+			"rules": ["VERIFYKEYS-49", "KEYS-19"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"key": "@unusable",
+				"partnerID": "acme",
+				"nonce": 7
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "verifykeys-create-request-key-unusable",
+			"rules": ["VERIFYKEYS-49", "KEYS-19"],
+			"op": "verifykeys.createRequest",
+			"input": {
+				"key": "@unusable",
+				"partnerID": "acme",
+				"nonce": 7
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "verifykeys-create-response-key-before-partner-id",
+			"rules": ["VERIFYKEYS-49", "KEYS-19"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"key": null,
+				"partnerID": "",
+				"nonce": 0
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The key is checked first."
+		},
+		{
+			"name": "verifykeys-create-request-key-before-partner-id",
+			"rules": ["VERIFYKEYS-49", "KEYS-19"],
+			"op": "verifykeys.createRequest",
+			"input": {
+				"key": "@unusable",
+				"partnerID": "boostx",
+				"nonce": 0
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The key is checked first."
+		},
+		{
+			"name": "verifykeys-create-response-partner-id-before-nonce",
+			"rules": ["VERIFYKEYS-49", "VERIFYKEYS-09"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"partnerID": "",
+				"nonce": 0
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partnerID"
+			},
+			"note": "partnerID is checked before the nonce."
+		},
+		{
+			"name": "verifykeys-create-request-reserved-id-before-nonce",
+			"rules": ["VERIFYKEYS-49", "VERIFYKEYS-09"],
+			"op": "verifykeys.createRequest",
+			"input": {
+				"partnerID": "boostx",
+				"nonce": -5
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partnerID"
+			},
+			"note": "partnerID is checked before the nonce."
+		},
+		{
+			"name": "verifykeys-create-request-partner-id-ill-formed",
+			"rules": ["VERIFYKEYS-09", "VERIFYKEYS-49"],
+			"needs": ["ill-formed-string"],
+			"op": "verifykeys.createRequest",
+			"input": {
+				"partnerID": {
+					"$illFormed": "acme"
+				},
+				"nonce": 7
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partnerID"
+			},
+			"note": "A partner id that is not well-formed Unicode is refused before anything is signed."
+		},
+		{
+			"name": "verifykeys-create-request-nonce-before-ill-formed-partner-id",
+			"rules": ["VERIFYKEYS-09", "VERIFYKEYS-49"],
+			"needs": ["ill-formed-string"],
+			"op": "verifykeys.createRequest",
+			"input": {
+				"partnerID": {
+					"$illFormed": "acme"
+				},
+				"nonce": 0
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "nonce"
+			},
+			"note": "Well-formedness is checked after the nonce."
+		},
+		{
+			"name": "verifykeys-create-request-partner-id-surrogate-pair",
+			"rules": ["VERIFYKEYS-09", "VERIFYKEYS-49"],
+			"op": "verifykeys.createRequest",
+			"input": {
+				"partnerID": "acme\ud83d\ude00",
+				"nonce": 7
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"verifyKeys": {
+							"nonce": 7
+						},
+						"iss": "boostx",
+						"aud": "acme\ud83d\ude00",
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "A high-then-low surrogate pair is one well-formed character."
+		},
+		{
+			"name": "verifykeys-create-response-partner-id-ill-formed",
+			"rules": ["VERIFYKEYS-09", "VERIFYKEYS-49"],
+			"needs": ["ill-formed-string"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"partnerID": {
+					"$illFormed": "acme"
+				},
+				"nonce": 7
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partnerID"
+			},
+			"note": "A partner id that is not well-formed Unicode is refused before anything is signed."
+		},
+		{
+			"name": "verifykeys-create-response-nonce-before-ill-formed-partner-id",
+			"rules": ["VERIFYKEYS-09", "VERIFYKEYS-49"],
+			"needs": ["ill-formed-string"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"partnerID": {
+					"$illFormed": "acme"
+				},
+				"nonce": 0
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "nonce"
+			},
+			"note": "Well-formedness is checked after the nonce."
+		},
+		{
+			"name": "verifykeys-create-response-partner-id-surrogate-pair",
+			"rules": ["VERIFYKEYS-09", "VERIFYKEYS-49"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"partnerID": "acme\ud83d\ude00",
+				"nonce": 7
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"verifyKeys": {
+							"nonce": 7
+						},
+						"iss": "acme\ud83d\ude00",
+						"aud": "boostx",
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "A high-then-low surrogate pair is one well-formed character."
+		},
+		{
+			"name": "verifykeys-extract-accepted",
+			"rules": ["VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-extract-header-not-read",
+			"rules": ["VERIFYKEYS-10", "KEYS-49"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"headerSegment": [
+						{
+							"insert": "*",
+							"at": 0
+						}
+					]
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			},
+			"note": "Extraction never reads the header segment."
+		},
+		{
+			"name": "verifykeys-extract-header-bytes-not-read",
+			"rules": ["VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"headerHex": "ff"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			},
+			"note": "Extraction never reads the header segment."
+		},
+		{
+			"name": "verifykeys-extract-signature-not-read",
+			"rules": ["VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"signature": ["empty"]
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			},
+			"note": "Extraction never reads the signature segment."
+		},
+		{
+			"name": "verifykeys-extract-trailing-newline",
+			"rules": ["VERIFYKEYS-27", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"transform": [
+						{
+							"append": "\n"
+						}
+					]
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			},
+			"note": "The newline lands in the signature segment, which extraction never reads."
+		},
+		{
+			"name": "verifykeys-extract-leading-space",
+			"rules": ["VERIFYKEYS-27", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"transform": [
+						{
+							"insert": " ",
+							"at": 0
+						}
+					]
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			},
+			"note": "The space lands in the header segment, which extraction never reads."
+		},
+		{
+			"name": "verifykeys-extract-payload-trailing-newline",
+			"rules": ["VERIFYKEYS-27", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"transform": [
+						{
+							"insert": "\n",
+							"at": -87
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			},
+			"note": "The newline ends the payload segment (the signature segment is 86 characters)."
+		},
+		{
+			"name": "verifykeys-extract-two-segments",
+			"rules": ["VERIFYKEYS-24", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"transform": [
+						{
+							"segments": 2
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-four-segments",
+			"rules": ["VERIFYKEYS-24", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"transform": [
+						{
+							"append": ".x"
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-empty-token",
+			"rules": ["VERIFYKEYS-24", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"raw": ""
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-payload-padded",
+			"rules": ["VERIFYKEYS-25", "KEYS-26", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"payloadSegment": ["pad"]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-payload-std-alphabet",
+			"rules": ["VERIFYKEYS-25", "KEYS-26", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"x\":\"?????>a\",\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"payloadSegment": ["std-alphabet"]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-payload-trailing-bits",
+			"rules": ["VERIFYKEYS-25", "KEYS-26", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"x\":\"?????>a\",\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"payloadSegment": ["trailing-bits"]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-payload-invalid-utf8",
+			"rules": ["VERIFYKEYS-29", "KEYS-35", "KEYS-66", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"x\":\"${hex:ff}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-payload-bom",
+			"rules": ["VERIFYKEYS-29", "KEYS-36", "KEYS-66", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "${hex:efbbbf}{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-payload-lone-surrogate-aud",
+			"rules": ["KEYS-37", "VERIFYKEYS-46", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\\ud800\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-payload-lone-surrogate-other-member",
+			"rules": ["KEYS-37", "VERIFYKEYS-46", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"x\":\"\\udc00\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-payload-null",
+			"rules": ["VERIFYKEYS-28", "KEYS-32", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "null"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-payload-array",
+			"rules": ["VERIFYKEYS-28", "KEYS-32", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "[{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}]"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-payload-trailing-data",
+			"rules": ["VERIFYKEYS-28", "KEYS-32", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}{}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-aud-absent",
+			"rules": ["VERIFYKEYS-10", "VERIFYKEYS-36"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-aud-null",
+			"rules": ["VERIFYKEYS-10", "VERIFYKEYS-36"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":null,\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-aud-empty",
+			"rules": ["VERIFYKEYS-10", "VERIFYKEYS-72"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-aud-boostx",
+			"rules": ["VERIFYKEYS-10", "VERIFYKEYS-72", "VERIFYKEYS-08"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"boostx\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-aud-boostx-case-variant",
+			"rules": ["VERIFYKEYS-72", "VERIFYKEYS-08"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"BOOSTX\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "BOOSTX"
+				}
+			},
+			"note": "Only the exact text boostx is refused here."
+		},
+		{
+			"name": "verifykeys-extract-aud-not-trimmed",
+			"rules": ["VERIFYKEYS-72"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\" acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": " acme"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-extract-aud-repeated-last-wins",
+			"rules": ["VERIFYKEYS-31", "KEYS-33", "VERIFYKEYS-72"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"aud\":\"boostx\",\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			},
+			"note": "The aud written last (acme) is the value."
+		},
+		{
+			"name": "verifykeys-extract-aud-number",
+			"rules": ["VERIFYKEYS-33", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":5,\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-aud-array",
+			"rules": ["VERIFYKEYS-33", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":[\"acme\"],\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-iss-number",
+			"rules": ["VERIFYKEYS-33", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":5,\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-iat-string",
+			"rules": ["VERIFYKEYS-35", "HTTP-40", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":\"${now}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-iat-fraction",
+			"rules": ["VERIFYKEYS-35", "HTTP-40", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}.5}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-verify-keys-array",
+			"rules": ["VERIFYKEYS-44", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":[7],\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-exp-null",
+			"rules": ["VERIFYKEYS-47", "KEYS-42", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"exp\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-nbf-string",
+			"rules": ["VERIFYKEYS-47", "KEYS-42", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"nbf\":\"${now}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-extract-iss-not-compared",
+			"rules": ["VERIFYKEYS-10", "VERIFYKEYS-46"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"evil\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			},
+			"note": "Extraction checks claim types, not the iss value."
+		},
+		{
+			"name": "verifykeys-extract-iat-not-judged",
+			"rules": ["VERIFYKEYS-10", "VERIFYKEYS-46"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":0}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			},
+			"note": "Extraction checks claim types, not the time window."
+		},
+		{
+			"name": "verifykeys-extract-exp-not-judged",
+			"rules": ["VERIFYKEYS-10", "VERIFYKEYS-46"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"exp\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			},
+			"note": "Extraction checks claim types, not expiry."
+		},
+		{
+			"name": "verifykeys-extract-nonce-string-not-judged",
+			"rules": ["VERIFYKEYS-42", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":\"x\"},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			},
+			"note": "Extraction never judges the nonce."
+		},
+		{
+			"name": "verifykeys-extract-nonce-above-max-not-judged",
+			"rules": ["VERIFYKEYS-42", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":2147483648},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			},
+			"note": "Extraction never judges the nonce."
+		},
+		{
+			"name": "verifykeys-extract-verify-keys-absent-not-judged",
+			"rules": ["VERIFYKEYS-42", "VERIFYKEYS-45"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			},
+			"note": "Extraction never judges the nonce."
+		},
+		{
+			"name": "verifykeys-extract-response-token",
+			"rules": ["VERIFYKEYS-10", "VERIFYKEYS-08"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now}}",
+					"key": "partner"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			},
+			"note": "A response names boostx as its aud."
+		},
+		{
+			"name": "verifykeys-extract-booster-token",
+			"rules": ["VERIFYKEYS-45", "VERIFYKEYS-10"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":1,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			},
+			"note": "A Booster payload has no aud."
+		},
+		{
+			"name": "verifykeys-request-accepted",
+			"rules": ["VERIFYKEYS-54", "HTTP-65", "VERIFYKEYS-34"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":1642938715},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 1642938715,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-response-accepted",
+			"rules": ["VERIFYKEYS-54", "HTTP-65", "VERIFYKEYS-67"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":1642938715},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 1642938715,
+					"iat": "${now}"
+				}
+			},
+			"note": "partnerID is the response iss."
+		},
+		{
+			"name": "verifykeys-request-boostx-header-form",
+			"rules": ["VERIFYKEYS-06", "VERIFYKEYS-22"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"alg\":\"ES256\"}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			},
+			"note": "BoostX signs with alg alone; typ is not required."
+		},
+		{
+			"name": "verifykeys-request-header-other-members-ignored",
+			"rules": ["VERIFYKEYS-23", "KEYS-23", "KEYS-64", "VERIFYKEYS-06"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"typ\":5,\"alg\":\"ES256\",\"kid\":null,\"x5u\":[1],\"b64\":false,\"CRIT\":[\"exp\"]}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			},
+			"note": "Members other than alg and crit are ignored whatever their type; CRIT is not crit."
+		},
+		{
+			"name": "verifykeys-request-header-surrounding-whitespace",
+			"rules": ["VERIFYKEYS-22", "KEYS-22", "KEYS-24", "KEYS-65"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": " {\"alg\":\"ES256\",\"typ\":\"JWT\"}\n"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-request-header-alg-repeated-last-wins",
+			"rules": ["VERIFYKEYS-22", "KEYS-22", "KEYS-24", "KEYS-65", "VERIFYKEYS-31", "KEYS-33"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"alg\":\"none\",\"alg\":\"ES256\"}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-surrounding-whitespace",
+			"rules": ["VERIFYKEYS-28", "KEYS-32"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": " {\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}\r\n\t"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-request-unknown-members-ignored",
+			"rules": ["VERIFYKEYS-32"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7,\"extra\":[1]},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"sub\":5,\"jti\":null,\"booster\":{}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-request-member-name-escaped",
+			"rules": ["VERIFYKEYS-30", "KEYS-34"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKe\\u0079s\":{\"non\\u0063e\":7},\"iss\":\"boo\\u0073tx\",\"iat\":${now},\"\\u0061ud\":\"acm\\u0065\"}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			},
+			"note": "Names and values are compared after JSON unescaping."
+		},
+		{
+			"name": "verifykeys-request-paired-surrogate-accepted",
+			"rules": ["KEYS-37", "VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"x\":\"\\ud83d\\ude00\",\"y\":\"\\uD83D\\uDE00\"}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			},
+			"note": "The JSON text holds high-then-low surrogate escapes, in both hex cases: a well-formed pair."
+		},
+		{
+			"name": "verifykeys-request-multibyte-utf8-accepted",
+			"rules": ["VERIFYKEYS-29", "KEYS-35"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"x\":\"é€😀\"}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			},
+			"note": "Two-, three- and four-byte UTF-8 sequences written as literal characters are well-formed."
+		},
+		{
+			"name": "verifykeys-request-escaped-backslash-not-a-surrogate",
+			"rules": ["KEYS-37", "VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"x\":\"\\\\ud800\"}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			},
+			"note": "The text is an escaped backslash followed by ud800, not a surrogate escape."
+		},
+		{
+			"name": "verifykeys-request-partner-id-case-variant",
+			"rules": ["VERIFYKEYS-09", "VERIFYKEYS-34"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"BOOSTX\",\"iat\":${now}}"
+				},
+				"partnerID": "BOOSTX"
+			},
+			"want": {
+				"ok": {
+					"partnerID": "BOOSTX",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-request-key-null",
+			"rules": ["VERIFYKEYS-50", "VERIFYKEYS-51", "KEYS-60", "HTTP-57"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"key": null
+			},
+			"want": {
+				"error": ["invalid_public_key"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-key-unusable",
+			"rules": ["VERIFYKEYS-50", "VERIFYKEYS-51", "KEYS-60", "HTTP-57"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"key": "@unusable"
+			},
+			"want": {
+				"error": ["invalid_public_key"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-response-key-unusable",
+			"rules": ["VERIFYKEYS-50", "VERIFYKEYS-51", "KEYS-60"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now}}"
+				},
+				"key": "@unusable"
+			},
+			"want": {
+				"error": ["invalid_public_key"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-key-before-partner-id",
+			"rules": ["VERIFYKEYS-46", "VERIFYKEYS-50", "KEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"key": null,
+				"partnerID": ""
+			},
+			"want": {
+				"error": ["invalid_public_key"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-key-before-window",
+			"rules": ["VERIFYKEYS-46", "VERIFYKEYS-50", "KEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"key": "@unusable",
+				"windowSeconds": -1
+			},
+			"want": {
+				"error": ["invalid_public_key"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-key-before-token",
+			"rules": ["VERIFYKEYS-46", "VERIFYKEYS-50", "KEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"raw": "x"
+				},
+				"key": null
+			},
+			"want": {
+				"error": ["invalid_public_key"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-partner-id-empty",
+			"rules": ["VERIFYKEYS-09"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"\",\"iat\":${now}}"
+				},
+				"partnerID": ""
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partnerID"
+			}
+		},
+		{
+			"name": "verifykeys-request-partner-id-null",
+			"rules": ["VERIFYKEYS-09"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"partnerID": null
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partnerID"
+			},
+			"note": "null reads as absent."
+		},
+		{
+			"name": "verifykeys-request-partner-id-boostx",
+			"rules": ["VERIFYKEYS-09", "VERIFYKEYS-08", "VERIFYKEYS-52"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"boostx\",\"iat\":${now}}"
+				},
+				"partnerID": "boostx"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partnerID",
+				"reason": "shape"
+			},
+			"note": "An argument error maps to the reason shape."
+		},
+		{
+			"name": "verifykeys-response-partner-id-boostx",
+			"rules": ["VERIFYKEYS-09", "VERIFYKEYS-08"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"boostx\",\"iat\":${now}}"
+				},
+				"partnerID": "boostx"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partnerID"
+			}
+		},
+		{
+			"name": "verifykeys-request-partner-id-before-window",
+			"rules": ["VERIFYKEYS-46", "VERIFYKEYS-50", "VERIFYKEYS-09"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"partnerID": "",
+				"windowSeconds": -1
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partnerID"
+			}
+		},
+		{
+			"name": "verifykeys-request-window-negative",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43", "VERIFYKEYS-39", "VERIFYKEYS-52"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"windowSeconds": -1
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"reason": "shape"
+			},
+			"note": "An argument error maps to the reason shape."
+		},
+		{
+			"name": "verifykeys-request-window-negative-fraction",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43", "VERIFYKEYS-39"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"windowSeconds": -0.5
+			},
+			"want": {
+				"error": ["invalid_claim"]
+			}
+		},
+		{
+			"name": "verifykeys-request-window-nan",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43", "VERIFYKEYS-39"],
+			"needs": ["non-finite"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"windowSeconds": {
+					"$number": "NaN"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"]
+			},
+			"note": "A runner whose window parameter cannot hold a non-finite number (Go time.Duration) skips this case."
+		},
+		{
+			"name": "verifykeys-request-window-infinity",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43", "VERIFYKEYS-39"],
+			"needs": ["non-finite"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"windowSeconds": {
+					"$number": "Infinity"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"]
+			},
+			"note": "A runner whose window parameter cannot hold a non-finite number (Go time.Duration) skips this case."
+		},
+		{
+			"name": "verifykeys-request-window-negative-infinity",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43", "VERIFYKEYS-39"],
+			"needs": ["non-finite"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"windowSeconds": {
+					"$number": "-Infinity"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"]
+			},
+			"note": "A runner whose window parameter cannot hold a non-finite number (Go time.Duration) skips this case."
+		},
+		{
+			"name": "verifykeys-request-window-before-token",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43", "VERIFYKEYS-39", "VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"raw": "x"
+				},
+				"windowSeconds": -1
+			},
+			"want": {
+				"error": ["invalid_claim"]
+			},
+			"note": "The window is checked before the token is read."
+		},
+		{
+			"name": "verifykeys-response-window-negative",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43", "VERIFYKEYS-39"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now}}"
+				},
+				"windowSeconds": -1
+			},
+			"want": {
+				"error": ["invalid_claim"]
+			}
+		},
+		{
+			"name": "verifykeys-request-window-left-out-accepts-20s",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43", "VERIFYKEYS-37"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-20}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now-20}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-request-window-zero-is-default",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-20}}"
+				},
+				"windowSeconds": 0
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now-20}"
+				}
+			},
+			"note": "A window of 0 means the 30 s default, not a zero-second window."
+		},
+		{
+			"name": "verifykeys-request-window-negative-zero-is-default",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-20}}"
+				},
+				"windowSeconds": {
+					"$number": "-0"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now-20}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-request-window-null-is-default",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-20}}"
+				},
+				"windowSeconds": null
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now-20}"
+				}
+			},
+			"note": "null reads as absent."
+		},
+		{
+			"name": "verifykeys-request-window-zero-default-refuses-40s",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-40}}"
+				},
+				"windowSeconds": 0
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "verifykeys-request-window-under-one-second",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-20}}"
+				},
+				"windowSeconds": 0.5
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			},
+			"note": "A positive window under 1 s truncates to a zero-second window."
+		},
+		{
+			"name": "verifykeys-response-window-under-one-second",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now-20}}"
+				},
+				"windowSeconds": 0.999
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			},
+			"note": "A positive window under 1 s truncates to a zero-second window."
+		},
+		{
+			"name": "verifykeys-request-window-60-accepts-past",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-50}}"
+				},
+				"windowSeconds": 60
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now-50}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-request-window-60-accepts-future-edge",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43", "VERIFYKEYS-37"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now+60}}"
+				},
+				"windowSeconds": 60
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now+60}"
+				}
+			},
+			"note": "The future edge stays inside the window as the clock moves on."
+		},
+		{
+			"name": "verifykeys-request-window-60-refuses-past",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-75}}"
+				},
+				"windowSeconds": 60
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "verifykeys-request-window-60-refuses-future",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now+75}}"
+				},
+				"windowSeconds": 60
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "verifykeys-request-window-fraction",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-50}}"
+				},
+				"windowSeconds": 60.9
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now-50}"
+				}
+			},
+			"note": "A fractional window is valid and counts in whole seconds."
+		},
+		{
+			"name": "verifykeys-request-two-segments",
+			"rules": ["VERIFYKEYS-24"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"transform": [
+						{
+							"segments": 2
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-four-segments",
+			"rules": ["VERIFYKEYS-24"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"transform": [
+						{
+							"append": "."
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			},
+			"note": "An empty fourth segment."
+		},
+		{
+			"name": "verifykeys-request-empty-token",
+			"rules": ["VERIFYKEYS-24"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"raw": ""
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-one-segment",
+			"rules": ["VERIFYKEYS-24"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"transform": [
+						{
+							"segments": 1
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-padded",
+			"rules": ["VERIFYKEYS-25", "KEYS-26"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"headerSegment": ["pad"]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-std-alphabet",
+			"rules": ["VERIFYKEYS-25", "KEYS-26"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"alg\":\"ES256\",\"typ\":\"JWT\",\"x\":\"???>\"}",
+					"headerSegment": ["std-alphabet"]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-trailing-bits",
+			"rules": ["VERIFYKEYS-25", "KEYS-26"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"alg\":\"ES256\",\"typ\":\"JWT\",\"x\":\"???>\"}",
+					"headerSegment": ["trailing-bits"]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-line-break",
+			"rules": ["VERIFYKEYS-25", "KEYS-26", "VERIFYKEYS-27"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"headerSegment": [
+						{
+							"insert": "\r\n",
+							"at": 8
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-invalid-utf8",
+			"rules": ["VERIFYKEYS-29", "KEYS-35", "KEYS-66"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"alg\":\"ES256\",\"x\":\"${hex:c0af}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			},
+			"note": "An overlong encoding."
+		},
+		{
+			"name": "verifykeys-request-header-bom",
+			"rules": ["VERIFYKEYS-29", "KEYS-36", "KEYS-66"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "${hex:efbbbf}{\"alg\":\"ES256\",\"typ\":\"JWT\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-lone-surrogate",
+			"rules": ["KEYS-37", "VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"alg\":\"ES256\",\"typ\":\"JWT\",\"x\":\"\\ud800\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-null",
+			"rules": ["VERIFYKEYS-22", "KEYS-22", "KEYS-24", "KEYS-65"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "null"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-array",
+			"rules": ["VERIFYKEYS-22", "KEYS-22", "KEYS-24", "KEYS-65"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "[{\"alg\":\"ES256\"}]"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-string",
+			"rules": ["VERIFYKEYS-22", "KEYS-22", "KEYS-24", "KEYS-65"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "\"ES256\""
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-empty",
+			"rules": ["VERIFYKEYS-22", "KEYS-22", "KEYS-24", "KEYS-65"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": ""
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-trailing-data",
+			"rules": ["VERIFYKEYS-22", "KEYS-22", "KEYS-24", "KEYS-65"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"alg\":\"ES256\"}{}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-alg-none",
+			"rules": ["VERIFYKEYS-21", "VERIFYKEYS-22", "KEYS-65"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"alg\":\"none\",\"typ\":\"JWT\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-alg-lowercase",
+			"rules": ["VERIFYKEYS-21", "VERIFYKEYS-22", "KEYS-65"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"alg\":\"es256\",\"typ\":\"JWT\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-alg-es384",
+			"rules": ["VERIFYKEYS-21", "VERIFYKEYS-22", "KEYS-65"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"alg\":\"ES384\",\"typ\":\"JWT\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-alg-absent",
+			"rules": ["VERIFYKEYS-21", "VERIFYKEYS-22", "KEYS-65"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"typ\":\"JWT\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-alg-null",
+			"rules": ["VERIFYKEYS-21", "VERIFYKEYS-22", "KEYS-65"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"alg\":null,\"typ\":\"JWT\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-alg-number",
+			"rules": ["VERIFYKEYS-21", "VERIFYKEYS-22", "KEYS-65"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"alg\":256,\"typ\":\"JWT\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-alg-array",
+			"rules": ["VERIFYKEYS-21", "VERIFYKEYS-22", "KEYS-65"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"alg\":[\"ES256\"],\"typ\":\"JWT\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-alg-key-case",
+			"rules": ["VERIFYKEYS-21", "VERIFYKEYS-22", "KEYS-65", "VERIFYKEYS-30", "KEYS-34"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"ALG\":\"ES256\",\"typ\":\"JWT\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			},
+			"note": "Only the member named exactly alg is read."
+		},
+		{
+			"name": "verifykeys-request-header-alg-key-case-shadow",
+			"rules": ["VERIFYKEYS-21", "VERIFYKEYS-22", "KEYS-65"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"alg\":\"none\",\"ALG\":\"ES256\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-alg-repeated-none-last",
+			"rules": ["VERIFYKEYS-21", "VERIFYKEYS-22", "KEYS-65", "VERIFYKEYS-31", "KEYS-33"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"alg\":\"ES256\",\"alg\":\"none\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-crit",
+			"rules": ["VERIFYKEYS-23", "KEYS-23", "KEYS-64"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"alg\":\"ES256\",\"typ\":\"JWT\",\"crit\":[\"exp\"]}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-crit-null",
+			"rules": ["VERIFYKEYS-23", "KEYS-23", "KEYS-64"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"alg\":\"ES256\",\"crit\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			},
+			"note": "A crit member of any value is refused."
+		},
+		{
+			"name": "verifykeys-request-header-crit-empty",
+			"rules": ["VERIFYKEYS-23", "KEYS-23", "KEYS-64"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "{\"alg\":\"ES256\",\"crit\":[]}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-response-header-crit",
+			"rules": ["VERIFYKEYS-23", "KEYS-23", "KEYS-64", "VERIFYKEYS-67"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now}}",
+					"header": "{\"alg\":\"ES256\",\"crit\":[\"b64\"],\"b64\":true}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-signature-empty",
+			"rules": ["VERIFYKEYS-26", "KEYS-31"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"signature": ["empty"]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-signature-zero",
+			"rules": ["VERIFYKEYS-26", "KEYS-31"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"signature": ["zero"]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			},
+			"note": "64 zero bytes: well-formed, never valid."
+		},
+		{
+			"name": "verifykeys-request-signature-flipped",
+			"rules": ["VERIFYKEYS-46", "VERIFYKEYS-21", "VERIFYKEYS-53"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"signature": ["flip"]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-signature-padded",
+			"rules": ["VERIFYKEYS-26", "KEYS-31"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"signature": ["pad"]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-signature-std-alphabet",
+			"rules": ["VERIFYKEYS-26", "KEYS-31"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"signature": ["std-alphabet"]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-signature-trailing-bits",
+			"rules": ["VERIFYKEYS-26", "KEYS-31"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"signature": ["trailing-bits"]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-signature-63-bytes",
+			"rules": ["VERIFYKEYS-26", "KEYS-31", "VERIFYKEYS-21"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"signature": [
+						{
+							"truncate": 2
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-signature-bad-length",
+			"rules": ["VERIFYKEYS-26", "KEYS-31"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"signature": [
+						{
+							"truncate": 1
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			},
+			"note": "85 characters."
+		},
+		{
+			"name": "verifykeys-request-signature-67-bytes",
+			"rules": ["VERIFYKEYS-26", "KEYS-31", "VERIFYKEYS-21"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"signature": [
+						{
+							"append": "AAAA"
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-signature-inner-space",
+			"rules": ["VERIFYKEYS-26", "KEYS-31", "VERIFYKEYS-27"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"signature": [
+						{
+							"insert": " ",
+							"at": 40
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-trailing-newline",
+			"rules": ["VERIFYKEYS-27", "VERIFYKEYS-26", "KEYS-31"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"transform": [
+						{
+							"append": "\n"
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			},
+			"note": "The newline lands in the signature segment."
+		},
+		{
+			"name": "verifykeys-request-leading-space",
+			"rules": ["VERIFYKEYS-27", "VERIFYKEYS-25", "KEYS-26"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"transform": [
+						{
+							"insert": " ",
+							"at": 0
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			},
+			"note": "The space lands in the header segment."
+		},
+		{
+			"name": "verifykeys-request-payload-trailing-newline",
+			"rules": ["VERIFYKEYS-27"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"transform": [
+						{
+							"insert": "\n",
+							"at": -87
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			},
+			"note": "Inserted after signing: the signature check covers the payload text first."
+		},
+		{
+			"name": "verifykeys-request-other-key",
+			"rules": ["VERIFYKEYS-46", "VERIFYKEYS-20"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"key": "other"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			},
+			"note": "Signed by a key the verifier does not hold."
+		},
+		{
+			"name": "verifykeys-request-partner-key-for-request",
+			"rules": ["VERIFYKEYS-20"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"key": "partner"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			},
+			"note": "A request is verified with the BoostX public key."
+		},
+		{
+			"name": "verifykeys-response-other-partner-key",
+			"rules": ["VERIFYKEYS-20"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now}}",
+					"key": "partner2"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-padded",
+			"rules": ["VERIFYKEYS-25", "KEYS-26"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"payloadSegment": ["pad"]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			},
+			"note": "Transformed before signing, so the signature verifies and the payload check fails."
+		},
+		{
+			"name": "verifykeys-response-payload-padded",
+			"rules": ["VERIFYKEYS-25", "KEYS-26", "VERIFYKEYS-67"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now}}",
+					"payloadSegment": ["pad"]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-std-alphabet",
+			"rules": ["VERIFYKEYS-25", "KEYS-26"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"x\":\"?????>a\",\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"payloadSegment": ["std-alphabet"]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-trailing-bits",
+			"rules": ["VERIFYKEYS-25", "KEYS-26"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"x\":\"?????>a\",\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"payloadSegment": ["trailing-bits"]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-line-break-signed",
+			"rules": ["VERIFYKEYS-25", "KEYS-26", "VERIFYKEYS-27"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"payloadSegment": [
+						{
+							"append": "\n"
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			},
+			"note": "Transformed before signing, so the signature verifies and the payload check fails."
+		},
+		{
+			"name": "verifykeys-request-payload-non-ascii-signed",
+			"rules": ["VERIFYKEYS-46", "KEYS-29"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"payloadSegment": [
+						{
+							"append": "é"
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			},
+			"note": "Appended before signing and signed as the text's UTF-8 octets, so step 1.8 passes and step 1.9 fails as shape, not as signature."
+		},
+		{
+			"name": "verifykeys-request-payload-invalid-utf8",
+			"rules": ["VERIFYKEYS-29", "KEYS-35", "KEYS-66"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"x\":\"${hex:ff}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-overlong-utf8",
+			"rules": ["VERIFYKEYS-29", "KEYS-35", "KEYS-66"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"x\":\"${hex:c0af}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-encoded-surrogate",
+			"rules": ["VERIFYKEYS-29", "KEYS-35", "KEYS-66"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"x\":\"${hex:eda080}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			},
+			"note": "U+D800 encoded in UTF-8 bytes."
+		},
+		{
+			"name": "verifykeys-request-payload-above-max-code-point",
+			"rules": ["VERIFYKEYS-29", "KEYS-35", "KEYS-66"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"x\":\"${hex:f4908080}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-truncated-sequence",
+			"rules": ["VERIFYKEYS-29", "KEYS-35", "KEYS-66"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"x\":\"${hex:e282}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-bom",
+			"rules": ["VERIFYKEYS-29", "KEYS-36", "KEYS-66"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "${hex:efbbbf}{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-lone-high-surrogate",
+			"rules": ["KEYS-37", "VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"x\":\"\\ud800\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-lone-low-surrogate",
+			"rules": ["KEYS-37", "VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"x\":\"\\uDC00\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-high-surrogate-then-other",
+			"rules": ["KEYS-37", "VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"x\":\"\\ud800A\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-reversed-surrogates",
+			"rules": ["KEYS-37", "VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"x\":\"\\udc00\\ud800\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-high-surrogate-then-literal-low",
+			"rules": ["KEYS-37", "VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"x\":\"\\ud800x\\udc00\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-lone-surrogate-member-name",
+			"rules": ["KEYS-37", "VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"\\ud800\":1}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-lone-surrogate-replaced-member",
+			"rules": ["KEYS-37", "VERIFYKEYS-46", "VERIFYKEYS-31", "KEYS-33"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"aud\":\"\\ud800\",\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			},
+			"note": "The ill-formed aud is replaced by a later one, and the token is still malformed."
+		},
+		{
+			"name": "verifykeys-response-payload-lone-surrogate",
+			"rules": ["KEYS-37", "VERIFYKEYS-46"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\\udbff\",\"aud\":\"boostx\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-null",
+			"rules": ["VERIFYKEYS-28", "KEYS-32"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "null"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-array",
+			"rules": ["VERIFYKEYS-28", "KEYS-32"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "[]"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-string",
+			"rules": ["VERIFYKEYS-28", "KEYS-32"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "\"x\""
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-number",
+			"rules": ["VERIFYKEYS-28", "KEYS-32"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "5"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-empty",
+			"rules": ["VERIFYKEYS-28", "KEYS-32"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": ""
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-trailing-data",
+			"rules": ["VERIFYKEYS-28", "KEYS-32"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}x"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-two-objects",
+			"rules": ["VERIFYKEYS-28", "KEYS-32"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}{}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-form-feed",
+			"rules": ["VERIFYKEYS-28", "KEYS-32"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "\f{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			},
+			"note": "A form feed is not JSON whitespace."
+		},
+		{
+			"name": "verifykeys-request-header-before-signature",
+			"rules": ["VERIFYKEYS-46", "VERIFYKEYS-25", "KEYS-26"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"headerSegment": ["pad"],
+					"signature": ["zero"]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-header-object-before-alg",
+			"rules": ["VERIFYKEYS-46", "VERIFYKEYS-22", "KEYS-22", "KEYS-24", "KEYS-65"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"header": "[{\"alg\":\"none\"}]"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-alg-before-payload",
+			"rules": ["VERIFYKEYS-46", "VERIFYKEYS-21", "VERIFYKEYS-22", "KEYS-65"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "null",
+					"header": "{\"alg\":\"none\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			},
+			"note": "A wrong alg is reported before a payload that is not an object."
+		},
+		{
+			"name": "verifykeys-request-signature-before-payload",
+			"rules": ["VERIFYKEYS-46", "VERIFYKEYS-26", "KEYS-31"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "[1]",
+					"signature": ["flip"]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-signature-before-payload-bytes",
+			"rules": ["VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "${hex:efbbbf}{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"key": "other"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-signature-before-claims",
+			"rules": ["VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":5,\"aud\":\"zeta\",\"iat\":${now}}",
+					"signature": ["zero"]
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "verifykeys-request-payload-empty-object",
+			"rules": ["VERIFYKEYS-36"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			},
+			"note": "Every required claim is absent; iss and aud are checked first."
+		},
+		{
+			"name": "verifykeys-request-iss-number",
+			"rules": ["VERIFYKEYS-33"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":5,\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-iss-boolean",
+			"rules": ["VERIFYKEYS-33"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":true,\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-iss-array",
+			"rules": ["VERIFYKEYS-33"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":[\"boostx\"],\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-iss-object",
+			"rules": ["VERIFYKEYS-33"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":{},\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-aud-number",
+			"rules": ["VERIFYKEYS-33"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":5,\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-aud-array",
+			"rules": ["VERIFYKEYS-33"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":[\"acme\"],\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			},
+			"note": "An aud array is not accepted."
+		},
+		{
+			"name": "verifykeys-response-aud-array",
+			"rules": ["VERIFYKEYS-33", "VERIFYKEYS-67"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\",\"aud\":[\"boostx\"],\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			},
+			"note": "An aud array is not accepted."
+		},
+		{
+			"name": "verifykeys-request-iat-string",
+			"rules": ["VERIFYKEYS-35", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":\"${now}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-iat-boolean",
+			"rules": ["VERIFYKEYS-35", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":true}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-iat-array",
+			"rules": ["VERIFYKEYS-35", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":[${now}]}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-iat-object",
+			"rules": ["VERIFYKEYS-35", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":{}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-iat-fraction",
+			"rules": ["VERIFYKEYS-35", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}.5}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-response-iat-fraction",
+			"rules": ["VERIFYKEYS-35", "HTTP-40", "VERIFYKEYS-67"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now}.5}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-iat-integral-decimal",
+			"rules": ["VERIFYKEYS-35", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}.0}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			},
+			"note": "Judged by value: now.0 is now."
+		},
+		{
+			"name": "verifykeys-request-iat-integral-exponent",
+			"rules": ["VERIFYKEYS-35", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}e0}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			},
+			"note": "Judged by value: now e0 is now."
+		},
+		{
+			"name": "verifykeys-request-iat-rounds-to-integral",
+			"rules": ["VERIFYKEYS-35", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}.00000001}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			},
+			"note": "The nearest binary64 value of now.00000001 is now itself."
+		},
+		{
+			"name": "verifykeys-request-iat-safe-max",
+			"rules": ["VERIFYKEYS-35", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":9007199254740991}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			},
+			"note": "2^53-1 is an integer, and far outside the window."
+		},
+		{
+			"name": "verifykeys-request-iat-above-safe-max",
+			"rules": ["VERIFYKEYS-35", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":9007199254740992}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			},
+			"note": "2^53 is beyond the integer range."
+		},
+		{
+			"name": "verifykeys-request-iat-rounds-above-safe-max",
+			"rules": ["VERIFYKEYS-35", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":9007199254740993}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			},
+			"note": "Its nearest binary64 value is 2^53."
+		},
+		{
+			"name": "verifykeys-request-iat-safe-min",
+			"rules": ["VERIFYKEYS-35", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":-9007199254740991}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "verifykeys-request-iat-below-safe-min",
+			"rules": ["VERIFYKEYS-35", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":-9007199254740992}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-iat-overflow",
+			"rules": ["VERIFYKEYS-35", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":1e400}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			},
+			"note": "Beyond binary64 range: Infinity, not an integer."
+		},
+		{
+			"name": "verifykeys-request-iat-negative-overflow",
+			"rules": ["VERIFYKEYS-35", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":-1e400}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-iat-underflow",
+			"rules": ["VERIFYKEYS-35", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":1e-400}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			},
+			"note": "Underflows to 0, an integer outside the window."
+		},
+		{
+			"name": "verifykeys-request-iat-negative-zero",
+			"rules": ["VERIFYKEYS-35", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":-0}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "verifykeys-request-verify-keys-array",
+			"rules": ["VERIFYKEYS-44", "VERIFYKEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":[{\"nonce\":7}],\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-verify-keys-string",
+			"rules": ["VERIFYKEYS-44", "VERIFYKEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":\"7\",\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-verify-keys-number",
+			"rules": ["VERIFYKEYS-44", "VERIFYKEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":7,\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-verify-keys-boolean",
+			"rules": ["VERIFYKEYS-44", "VERIFYKEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":true,\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-exp-null",
+			"rules": ["VERIFYKEYS-47", "KEYS-42", "VERIFYKEYS-36"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"exp\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			},
+			"note": "A null exp is shape, not absent."
+		},
+		{
+			"name": "verifykeys-request-nbf-null",
+			"rules": ["VERIFYKEYS-47", "KEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"nbf\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-exp-string",
+			"rules": ["VERIFYKEYS-47", "KEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"exp\":\"${now+100}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-nbf-boolean",
+			"rules": ["VERIFYKEYS-47", "KEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"nbf\":false}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-exp-array",
+			"rules": ["VERIFYKEYS-47", "KEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"exp\":[]}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-types-before-iss-aud",
+			"rules": ["VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"evil\",\"aud\":\"acme\",\"iat\":\"${now}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-exp-type-before-iss-aud",
+			"rules": ["VERIFYKEYS-46", "VERIFYKEYS-47", "KEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"zeta\",\"iat\":${now},\"exp\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-verify-keys-type-before-iss-aud",
+			"rules": ["VERIFYKEYS-46", "VERIFYKEYS-44"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":[],\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-aud-type-before-stale",
+			"rules": ["VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":[\"acme\"],\"iat\":0}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-iat-type-before-nonce",
+			"rules": ["VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":0},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}.5}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-nbf-type-before-stale",
+			"rules": ["VERIFYKEYS-46", "VERIFYKEYS-47", "KEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-100},\"nbf\":\"0\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "verifykeys-request-iss-absent",
+			"rules": ["VERIFYKEYS-36", "VERIFYKEYS-33"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			}
+		},
+		{
+			"name": "verifykeys-request-iss-null",
+			"rules": ["VERIFYKEYS-36", "VERIFYKEYS-33"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":null,\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			}
+		},
+		{
+			"name": "verifykeys-request-iss-empty",
+			"rules": ["VERIFYKEYS-34"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			}
+		},
+		{
+			"name": "verifykeys-request-iss-case",
+			"rules": ["VERIFYKEYS-34", "VERIFYKEYS-08"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"BoostX\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			}
+		},
+		{
+			"name": "verifykeys-request-iss-trailing-space",
+			"rules": ["VERIFYKEYS-34"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx \",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			}
+		},
+		{
+			"name": "verifykeys-request-aud-absent",
+			"rules": ["VERIFYKEYS-36", "VERIFYKEYS-33"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			}
+		},
+		{
+			"name": "verifykeys-request-aud-null",
+			"rules": ["VERIFYKEYS-36", "VERIFYKEYS-33"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":null,\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			}
+		},
+		{
+			"name": "verifykeys-request-aud-case",
+			"rules": ["VERIFYKEYS-34"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"ACME\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			}
+		},
+		{
+			"name": "verifykeys-request-aud-leading-space",
+			"rules": ["VERIFYKEYS-34"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\" acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			}
+		},
+		{
+			"name": "verifykeys-request-aud-other-partner",
+			"rules": ["VERIFYKEYS-34"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"partnerID": "zeta"
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			},
+			"note": "The token names acme; the parser expects zeta."
+		},
+		{
+			"name": "verifykeys-request-response-direction",
+			"rules": ["VERIFYKEYS-34", "VERIFYKEYS-08"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			},
+			"note": "A response (iss acme, aud boostx) signed with the BoostX key is not a request."
+		},
+		{
+			"name": "verifykeys-response-request-direction",
+			"rules": ["VERIFYKEYS-34", "VERIFYKEYS-08"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			},
+			"note": "A request (iss boostx, aud acme) signed with the partner key is not a response."
+		},
+		{
+			"name": "verifykeys-response-iss-other-partner",
+			"rules": ["VERIFYKEYS-34"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"zeta\",\"aud\":\"boostx\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			}
+		},
+		{
+			"name": "verifykeys-response-aud-case",
+			"rules": ["VERIFYKEYS-34", "VERIFYKEYS-08"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\",\"aud\":\"BOOSTX\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			}
+		},
+		{
+			"name": "verifykeys-response-iss-absent",
+			"rules": ["VERIFYKEYS-36"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"aud\":\"boostx\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			}
+		},
+		{
+			"name": "verifykeys-request-aud-key-case",
+			"rules": ["VERIFYKEYS-30", "KEYS-34"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"iat\":${now},\"AUD\":\"acme\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			},
+			"note": "AUD is an unknown member, so aud is absent."
+		},
+		{
+			"name": "verifykeys-request-aud-key-case-shadow",
+			"rules": ["VERIFYKEYS-30", "KEYS-34"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"zeta\",\"iat\":${now},\"AUD\":\"acme\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			}
+		},
+		{
+			"name": "verifykeys-request-aud-key-case-ignored",
+			"rules": ["VERIFYKEYS-30", "KEYS-34"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"AUD\":\"zeta\"}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			},
+			"note": "AUD never overrides aud."
+		},
+		{
+			"name": "verifykeys-request-iss-unicode-fold",
+			"rules": ["VERIFYKEYS-30", "KEYS-34"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"aud\":\"acme\",\"iat\":${now},\"iſs\":\"boostx\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			},
+			"note": "iſs (long s) is not iss: no Unicode folding."
+		},
+		{
+			"name": "verifykeys-request-aud-repeated-last-wins",
+			"rules": ["VERIFYKEYS-31", "KEYS-33"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"aud\":\"zeta\",\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-request-aud-repeated-wrong-last",
+			"rules": ["VERIFYKEYS-31", "KEYS-33"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"aud\":\"zeta\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			}
+		},
+		{
+			"name": "verifykeys-request-aud-repeated-null-last",
+			"rules": ["VERIFYKEYS-31", "KEYS-33", "VERIFYKEYS-36"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"aud\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			},
+			"note": "A later null counts as null, which reads as absent."
+		},
+		{
+			"name": "verifykeys-request-iss-aud-before-stale",
+			"rules": ["VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"evil\",\"aud\":\"acme\",\"iat\":${now-1000}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			}
+		},
+		{
+			"name": "verifykeys-request-iss-aud-before-exp",
+			"rules": ["VERIFYKEYS-46", "VERIFYKEYS-47", "KEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"zeta\",\"iat\":${now},\"exp\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			}
+		},
+		{
+			"name": "verifykeys-request-iss-aud-before-nonce",
+			"rules": ["VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":0},\"iss\":\"boostx\",\"aud\":\"zeta\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			}
+		},
+		{
+			"name": "verifykeys-request-iss-aud-before-nonce-type",
+			"rules": ["VERIFYKEYS-46", "VERIFYKEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":\"7\"},\"iss\":\"evil\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			},
+			"note": "A nonce of the wrong type is a nonce-format fault, judged last."
+		},
+		{
+			"name": "verifykeys-request-iss-aud-before-verify-keys-absent",
+			"rules": ["VERIFYKEYS-46", "VERIFYKEYS-45"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			}
+		},
+		{
+			"name": "verifykeys-response-iss-aud-before-stale",
+			"rules": ["VERIFYKEYS-46"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"zeta\",\"aud\":\"boostx\",\"iat\":0}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			}
+		},
+		{
+			"name": "verifykeys-request-iat-stale",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43", "VERIFYKEYS-37", "VERIFYKEYS-53"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-40}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "verifykeys-request-iat-future-edge",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43", "VERIFYKEYS-37", "VERIFYKEYS-54"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now+30}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now+30}"
+				}
+			},
+			"note": "now + 30 stays inside the window as the clock moves on, so this edge is stable."
+		},
+		{
+			"name": "verifykeys-request-iat-future",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43", "VERIFYKEYS-37"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now+40}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "verifykeys-response-iat-stale",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43", "VERIFYKEYS-37", "VERIFYKEYS-67"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now-40}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "verifykeys-response-iat-future-edge",
+			"rules": ["VERIFYKEYS-38", "KEYS-41", "HTTP-43", "VERIFYKEYS-37"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now+30}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now+30}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-request-iat-absent",
+			"rules": ["VERIFYKEYS-36"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			},
+			"note": "An absent iat reads as 0."
+		},
+		{
+			"name": "verifykeys-request-iat-null",
+			"rules": ["VERIFYKEYS-36"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			},
+			"note": "A null iat reads as 0."
+		},
+		{
+			"name": "verifykeys-request-iat-zero",
+			"rules": ["VERIFYKEYS-36", "VERIFYKEYS-37"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":0}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "verifykeys-request-iat-key-case",
+			"rules": ["VERIFYKEYS-30", "KEYS-34", "VERIFYKEYS-36"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"IAT\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			},
+			"note": "IAT is an unknown member, so iat is absent."
+		},
+		{
+			"name": "verifykeys-request-exp-future",
+			"rules": ["VERIFYKEYS-47", "KEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"exp\":${now+100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-request-exp-fraction-future",
+			"rules": ["VERIFYKEYS-47", "KEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"exp\":${now+100}.5}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			},
+			"note": "exp and nbf are numbers, not necessarily integers."
+		},
+		{
+			"name": "verifykeys-request-exp-margin",
+			"rules": ["VERIFYKEYS-47", "KEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"exp\":${now+15}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-request-exp-now",
+			"rules": ["VERIFYKEYS-47", "KEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"exp\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			},
+			"note": "A token is expired when exp <= now."
+		},
+		{
+			"name": "verifykeys-request-exp-past",
+			"rules": ["VERIFYKEYS-47", "KEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"exp\":${now-20}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "verifykeys-response-exp-now",
+			"rules": ["VERIFYKEYS-47", "KEYS-42", "VERIFYKEYS-67"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now},\"exp\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "verifykeys-request-nbf-now",
+			"rules": ["VERIFYKEYS-47", "KEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"nbf\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			},
+			"note": "nbf <= now is in force."
+		},
+		{
+			"name": "verifykeys-request-nbf-past",
+			"rules": ["VERIFYKEYS-47", "KEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"nbf\":${now-100}.5}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-request-nbf-future",
+			"rules": ["VERIFYKEYS-47", "KEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"nbf\":${now+20}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "verifykeys-response-nbf-future",
+			"rules": ["VERIFYKEYS-47", "KEYS-42", "VERIFYKEYS-67"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now},\"nbf\":${now+20}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "verifykeys-request-exp-with-fresh-iat-window",
+			"rules": ["VERIFYKEYS-47", "KEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-20},\"exp\":${now-10}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			},
+			"note": "iat is inside the window and exp has passed."
+		},
+		{
+			"name": "verifykeys-request-stale-before-nonce",
+			"rules": ["VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":0},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-40}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "verifykeys-request-exp-before-nonce",
+			"rules": ["VERIFYKEYS-46", "VERIFYKEYS-47", "KEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":\"x\"},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"exp\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "verifykeys-request-nbf-before-nonce",
+			"rules": ["VERIFYKEYS-46", "VERIFYKEYS-47", "KEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"nbf\":${now+100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "verifykeys-request-nonce-min",
+			"rules": ["VERIFYKEYS-41"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":1},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 1,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-request-nonce-max",
+			"rules": ["VERIFYKEYS-41"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":2147483647},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 2147483647,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-response-nonce-max",
+			"rules": ["VERIFYKEYS-41"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":2147483647},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 2147483647,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-request-nonce-zero",
+			"rules": ["VERIFYKEYS-41", "VERIFYKEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":0},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			}
+		},
+		{
+			"name": "verifykeys-response-nonce-zero",
+			"rules": ["VERIFYKEYS-41", "VERIFYKEYS-42"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":0},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			}
+		},
+		{
+			"name": "verifykeys-request-nonce-negative-zero",
+			"rules": ["VERIFYKEYS-43", "VERIFYKEYS-42", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":-0},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			}
+		},
+		{
+			"name": "verifykeys-request-nonce-negative",
+			"rules": ["VERIFYKEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":-1},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			}
+		},
+		{
+			"name": "verifykeys-request-nonce-int32-min",
+			"rules": ["VERIFYKEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":-2147483648},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			}
+		},
+		{
+			"name": "verifykeys-request-nonce-above-max",
+			"rules": ["VERIFYKEYS-41", "VERIFYKEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":2147483648},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			}
+		},
+		{
+			"name": "verifykeys-request-nonce-not-wrapped",
+			"rules": ["VERIFYKEYS-43", "VERIFYKEYS-42", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":4294967303},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			},
+			"note": "2^32 + 7 is not the nonce 7."
+		},
+		{
+			"name": "verifykeys-request-nonce-above-safe-max",
+			"rules": ["VERIFYKEYS-43", "VERIFYKEYS-42", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":9007199254740993},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			}
+		},
+		{
+			"name": "verifykeys-request-nonce-overflow",
+			"rules": ["VERIFYKEYS-43", "VERIFYKEYS-42", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":1e400},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			}
+		},
+		{
+			"name": "verifykeys-request-nonce-fraction",
+			"rules": ["VERIFYKEYS-43", "VERIFYKEYS-42", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":1.5},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			}
+		},
+		{
+			"name": "verifykeys-request-nonce-just-above-max",
+			"rules": ["VERIFYKEYS-43", "VERIFYKEYS-42", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":2147483647.0000002},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			},
+			"note": "Its nearest binary64 value is not an integer."
+		},
+		{
+			"name": "verifykeys-request-nonce-rounds-to-max",
+			"rules": ["VERIFYKEYS-43", "VERIFYKEYS-42", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":2147483647.0000001},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 2147483647,
+					"iat": "${now}"
+				}
+			},
+			"note": "Its nearest binary64 value is exactly 2147483647."
+		},
+		{
+			"name": "verifykeys-request-nonce-integral-decimal",
+			"rules": ["VERIFYKEYS-43", "VERIFYKEYS-42", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":5.0},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 5,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-request-nonce-integral-exponent",
+			"rules": ["VERIFYKEYS-43", "VERIFYKEYS-42", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":5e0},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 5,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-request-nonce-integral-scaled",
+			"rules": ["VERIFYKEYS-43", "VERIFYKEYS-42", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":0.7E1},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-request-nonce-string",
+			"rules": ["VERIFYKEYS-43", "VERIFYKEYS-42", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":\"7\"},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			},
+			"note": "A number written as a string is not a number."
+		},
+		{
+			"name": "verifykeys-request-nonce-boolean",
+			"rules": ["VERIFYKEYS-43", "VERIFYKEYS-42", "HTTP-40", "VERIFYKEYS-70"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":true},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			}
+		},
+		{
+			"name": "verifykeys-request-nonce-array",
+			"rules": ["VERIFYKEYS-43", "VERIFYKEYS-42", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":[7]},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			}
+		},
+		{
+			"name": "verifykeys-request-nonce-object",
+			"rules": ["VERIFYKEYS-43", "VERIFYKEYS-42", "HTTP-40"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":{}},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			}
+		},
+		{
+			"name": "verifykeys-request-nonce-null",
+			"rules": ["VERIFYKEYS-42", "VERIFYKEYS-36"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":null},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			}
+		},
+		{
+			"name": "verifykeys-request-nonce-absent",
+			"rules": ["VERIFYKEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			}
+		},
+		{
+			"name": "verifykeys-request-nonce-key-case",
+			"rules": ["VERIFYKEYS-30", "KEYS-34", "VERIFYKEYS-42"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"Nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			}
+		},
+		{
+			"name": "verifykeys-request-nonce-repeated-last-wins",
+			"rules": ["VERIFYKEYS-31", "KEYS-33"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":0,\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "verifykeys-request-verify-keys-absent",
+			"rules": ["VERIFYKEYS-45", "VERIFYKEYS-36"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			},
+			"note": "An absent verifyKeys reads as an empty object, so its nonce is absent."
+		},
+		{
+			"name": "verifykeys-request-verify-keys-null",
+			"rules": ["VERIFYKEYS-45", "VERIFYKEYS-36"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":null,\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			}
+		},
+		{
+			"name": "verifykeys-response-verify-keys-absent",
+			"rules": ["VERIFYKEYS-45"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			}
+		},
+		{
+			"name": "verifykeys-request-verify-keys-key-case",
+			"rules": ["VERIFYKEYS-30", "KEYS-34", "VERIFYKEYS-45"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"VerifyKeys\":{\"nonce\":7}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			}
+		},
+		{
+			"name": "verifykeys-request-verify-keys-repeated-not-merged",
+			"rules": ["VERIFYKEYS-31", "KEYS-33"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"verifyKeys\":{\"other\":1}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "nonce-format"
+			},
+			"note": "The later verifyKeys replaces the earlier one whole."
+		},
+		{
+			"name": "verifykeys-http-accepted",
+			"rules": ["VERIFYKEYS-01", "VERIFYKEYS-07", "VERIFYKEYS-11", "VERIFYKEYS-19"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":1642938715},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"status": 200,
+				"responseJWT": {
+					"key": "partner",
+					"partnerID": "acme",
+					"nonce": 1642938715
+				},
+				"keyStoreCalled": true
+			},
+			"note": "The response echoes the request nonce."
+		},
+		{
+			"name": "verifykeys-http-served-id-exact",
+			"rules": ["VERIFYKEYS-12", "HTTP-36", "VERIFYKEYS-72"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"Partner-A\",\"iat\":${now}}"
+				},
+				"keyStore": {
+					"Partner-A": {
+						"partnerPublicKeys": ["partner"],
+						"partnerPrivateKey": "partner",
+						"boostxPublicKey": "boostx"
+					}
+				}
+			},
+			"want": {
+				"status": 200,
+				"responseJWT": {
+					"key": "partner",
+					"partnerID": "Partner-A",
+					"nonce": 7
+				},
+				"keyStoreCalled": true
+			},
+			"note": "The response iss is the id the store served for the exact aud."
+		},
+		{
+			"name": "verifykeys-http-unserved-case-variant",
+			"rules": ["VERIFYKEYS-12", "VERIFYKEYS-13", "VERIFYKEYS-14", "VERIFYKEYS-72", "HTTP-36", "HTTP-38"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"partner-a\",\"iat\":${now}}"
+				},
+				"keyStore": {
+					"Partner-A": {
+						"partnerPublicKeys": ["partner"],
+						"partnerPrivateKey": "partner",
+						"boostxPublicKey": "boostx"
+					}
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: iss-aud",
+				"keyStoreCalled": true
+			},
+			"note": "The aud goes to the store unchanged, and the store serves only Partner-A."
+		},
+		{
+			"name": "verifykeys-http-probe-foreign-id",
+			"rules": ["VERIFYKEYS-13", "VERIFYKEYS-14", "HTTP-38"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"other-partner\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: iss-aud",
+				"keyStoreCalled": true
+			},
+			"note": "A correctly signed request for an id the store does not serve."
+		},
+		{
+			"name": "verifykeys-http-probe-ephemeral-key",
+			"rules": ["VERIFYKEYS-16"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"key": "other"
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: signature",
+				"keyStoreCalled": true
+			},
+			"note": "A request signed with a key the partner does not hold."
+		},
+		{
+			"name": "verifykeys-http-unknown-partner-at-boostx-key",
+			"rules": ["VERIFYKEYS-13", "VERIFYKEYS-68", "HTTP-38"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"keyStore": {
+					"acme": {
+						"partnerPublicKeys": ["partner"],
+						"partnerPrivateKey": "partner",
+						"boostxPublicKey": {
+							"error": "unknown_partner"
+						}
+					}
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: iss-aud",
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "verifykeys-http-unknown-partner-at-private-key",
+			"rules": ["VERIFYKEYS-13", "VERIFYKEYS-68", "HTTP-38"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"keyStore": {
+					"acme": {
+						"partnerPublicKeys": ["partner"],
+						"partnerPrivateKey": {
+							"error": "unknown_partner"
+						},
+						"boostxPublicKey": "boostx"
+					}
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: iss-aud",
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "verifykeys-http-store-error-boostx-key",
+			"rules": ["VERIFYKEYS-15", "VERIFYKEYS-68"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"keyStore": {
+					"acme": {
+						"partnerPublicKeys": ["partner"],
+						"partnerPrivateKey": "partner",
+						"boostxPublicKey": {
+							"error": "other"
+						}
+					}
+				}
+			},
+			"want": {
+				"status": 500,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "verifykeys-http-store-error-private-key",
+			"rules": ["VERIFYKEYS-15", "VERIFYKEYS-68"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"keyStore": {
+					"acme": {
+						"partnerPublicKeys": ["partner"],
+						"partnerPrivateKey": {
+							"error": "other"
+						},
+						"boostxPublicKey": "boostx"
+					}
+				}
+			},
+			"want": {
+				"status": 500,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "verifykeys-http-boostx-key-missing",
+			"rules": ["VERIFYKEYS-15", "VERIFYKEYS-68"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"keyStore": {
+					"acme": {
+						"partnerPublicKeys": ["partner"],
+						"partnerPrivateKey": "partner",
+						"boostxPublicKey": null
+					}
+				}
+			},
+			"want": {
+				"status": 500,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "verifykeys-http-boostx-key-unusable",
+			"rules": ["VERIFYKEYS-15", "VERIFYKEYS-51", "VERIFYKEYS-68", "KEYS-60", "HTTP-57"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"keyStore": {
+					"acme": {
+						"partnerPublicKeys": ["partner"],
+						"partnerPrivateKey": "partner",
+						"boostxPublicKey": "@unusable"
+					}
+				}
+			},
+			"want": {
+				"status": 500,
+				"error": "failed to verify token",
+				"keyStoreCalled": true
+			},
+			"note": "A store key that cannot verify is the server's fault, never a reason."
+		},
+		{
+			"name": "verifykeys-http-private-key-unusable",
+			"rules": ["VERIFYKEYS-15", "VERIFYKEYS-68"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"keyStore": {
+					"acme": {
+						"partnerPublicKeys": ["partner"],
+						"partnerPrivateKey": "@unusable",
+						"boostxPublicKey": "boostx"
+					}
+				}
+			},
+			"want": {
+				"status": 500,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "verifykeys-http-unknown-partner-before-signature",
+			"rules": ["VERIFYKEYS-11", "VERIFYKEYS-13"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"zeta\",\"iat\":${now}}",
+					"key": "other"
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: iss-aud",
+				"keyStoreCalled": true
+			},
+			"note": "The BoostX key lookup comes before verification."
+		},
+		{
+			"name": "verifykeys-http-signature-before-private-key-lookup",
+			"rules": ["VERIFYKEYS-11", "VERIFYKEYS-68"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"key": "other"
+				},
+				"keyStore": {
+					"acme": {
+						"partnerPublicKeys": ["partner"],
+						"partnerPrivateKey": {
+							"error": "unknown_partner"
+						},
+						"boostxPublicKey": "boostx"
+					}
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: signature",
+				"keyStoreCalled": true
+			},
+			"note": "The request is verified before the partner private key is looked up."
+		},
+		{
+			"name": "verifykeys-http-stale-before-private-key-lookup",
+			"rules": ["VERIFYKEYS-11", "VERIFYKEYS-68"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-40}}"
+				},
+				"keyStore": {
+					"acme": {
+						"partnerPublicKeys": ["partner"],
+						"partnerPrivateKey": {
+							"error": "other"
+						},
+						"boostxPublicKey": "boostx"
+					}
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: stale",
+				"keyStoreCalled": true
+			},
+			"note": "The request is verified before the partner private key is looked up."
+		},
+		{
+			"name": "verifykeys-http-boostx-key-unusable-before-token",
+			"rules": ["VERIFYKEYS-51", "VERIFYKEYS-68", "KEYS-46", "HTTP-26"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"key": "other"
+				},
+				"keyStore": {
+					"acme": {
+						"partnerPublicKeys": ["partner"],
+						"partnerPrivateKey": "partner",
+						"boostxPublicKey": "@unusable"
+					}
+				}
+			},
+			"want": {
+				"status": 500,
+				"error": "failed to verify token",
+				"keyStoreCalled": true
+			},
+			"note": "The key is checked before the token is read."
+		},
+		{
+			"name": "verifykeys-http-partner-public-keys-not-consulted",
+			"rules": ["VERIFYKEYS-20"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"keyStore": {
+					"acme": {
+						"partnerPublicKeys": null,
+						"partnerPrivateKey": "partner",
+						"boostxPublicKey": "boostx"
+					}
+				}
+			},
+			"want": {
+				"status": 200,
+				"responseJWT": {
+					"key": "partner",
+					"partnerID": "acme",
+					"nonce": 7
+				},
+				"keyStoreCalled": true
+			},
+			"note": "Verify-keys uses the BoostX public key and the partner private key only."
+		},
+		{
+			"name": "verifykeys-http-wrong-boostx-key",
+			"rules": ["VERIFYKEYS-16", "VERIFYKEYS-20"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"keyStore": {
+					"acme": {
+						"partnerPublicKeys": ["partner"],
+						"partnerPrivateKey": "partner",
+						"boostxPublicKey": "partner"
+					}
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: signature",
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "verifykeys-http-fixed-window-accepts-20s",
+			"rules": ["VERIFYKEYS-40", "VERIFYKEYS-37", "HTTP-43", "KEYS-41"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-20}}"
+				}
+			},
+			"want": {
+				"status": 200,
+				"responseJWT": {
+					"key": "partner",
+					"partnerID": "acme",
+					"nonce": 7
+				},
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "verifykeys-http-fixed-window-refuses-40s",
+			"rules": ["VERIFYKEYS-40", "VERIFYKEYS-16", "HTTP-43"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-40}}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: stale",
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "verifykeys-http-iss-mismatch",
+			"rules": ["VERIFYKEYS-16", "VERIFYKEYS-34"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"BoostX\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: iss-aud",
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "verifykeys-http-nonce-judged-after-lookup",
+			"rules": ["VERIFYKEYS-42", "VERIFYKEYS-46", "VERIFYKEYS-16"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":2147483648},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: nonce-format",
+				"keyStoreCalled": true
+			},
+			"note": "Extraction never judges the nonce, so the keys are looked up first."
+		},
+		{
+			"name": "verifykeys-http-aud-boostx-before-lookup",
+			"rules": ["VERIFYKEYS-10", "VERIFYKEYS-46"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"boostx\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: shape",
+				"keyStoreCalled": false
+			}
+		},
+		{
+			"name": "verifykeys-http-aud-absent-before-lookup",
+			"rules": ["VERIFYKEYS-10", "VERIFYKEYS-46"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: shape",
+				"keyStoreCalled": false
+			}
+		},
+		{
+			"name": "verifykeys-http-claim-type-before-lookup",
+			"rules": ["VERIFYKEYS-46", "KEYS-49"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":\"${now}\"}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: shape",
+				"keyStoreCalled": false
+			}
+		},
+		{
+			"name": "verifykeys-http-payload-whitespace-before-lookup",
+			"rules": ["VERIFYKEYS-27", "VERIFYKEYS-46"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"transform": [
+						{
+							"insert": "\n",
+							"at": -87
+						}
+					]
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: shape",
+				"keyStoreCalled": false
+			},
+			"note": "The extraction decodes the payload first, so this is shape here and signature in a direct parse."
+		},
+		{
+			"name": "verifykeys-http-leading-space-after-lookup",
+			"rules": ["VERIFYKEYS-27", "VERIFYKEYS-10"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"transform": [
+						{
+							"insert": " ",
+							"at": 0
+						}
+					]
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: shape",
+				"keyStoreCalled": true
+			},
+			"note": "Extraction never reads the header, so the space is found by the parse after the lookups."
+		},
+		{
+			"name": "verifykeys-http-trailing-newline-after-lookup",
+			"rules": ["VERIFYKEYS-27", "VERIFYKEYS-10"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"transform": [
+						{
+							"append": "\n"
+						}
+					]
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: signature",
+				"keyStoreCalled": true
+			},
+			"note": "Extraction never reads the signature segment, so the newline is found by the parse."
+		},
+		{
+			"name": "verifykeys-http-booster-token",
+			"rules": ["VERIFYKEYS-45"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":1,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: shape",
+				"keyStoreCalled": false
+			}
+		},
+		{
+			"name": "verifykeys-http-member-name-case",
+			"rules": ["VERIFYKEYS-56", "HTTP-12"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"request": {
+					"body": "{\"VerifyKeysJWT\":\"${token}\"}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: shape",
+				"keyStoreCalled": false
+			},
+			"note": "VerifyKeysJWT is not verifyKeysJWT, so the token is absent and reads as empty."
+		},
+		{
+			"name": "verifykeys-http-member-null",
+			"rules": ["VERIFYKEYS-56", "VERIFYKEYS-55"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"request": {
+					"body": "{\"verifyKeysJWT\":null}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: shape",
+				"keyStoreCalled": false
+			}
+		},
+		{
+			"name": "verifykeys-http-body-null",
+			"rules": ["VERIFYKEYS-56", "VERIFYKEYS-55"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"request": {
+					"body": "null"
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: shape",
+				"keyStoreCalled": false
+			}
+		},
+		{
+			"name": "verifykeys-http-body-empty-object",
+			"rules": ["VERIFYKEYS-55"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"request": {
+					"body": "{}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: shape",
+				"keyStoreCalled": false
+			}
+		},
+		{
+			"name": "verifykeys-http-member-repeated-last-wins",
+			"rules": ["VERIFYKEYS-71"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"request": {
+					"body": "{\"verifyKeysJWT\":\"x\",\"verifyKeysJWT\":\"${token}\"}"
+				}
+			},
+			"want": {
+				"status": 200,
+				"responseJWT": {
+					"key": "partner",
+					"partnerID": "acme",
+					"nonce": 7
+				},
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "verifykeys-http-extra-members-ignored",
+			"rules": ["VERIFYKEYS-55"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"request": {
+					"body": "{\"other\":[1],\"verifyKeysJWT\":\"${token}\"}"
+				}
+			},
+			"want": {
+				"status": 200,
+				"responseJWT": {
+					"key": "partner",
+					"partnerID": "acme",
+					"nonce": 7
+				},
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "verifykeys-http-member-not-string",
+			"rules": ["VERIFYKEYS-56", "VERIFYKEYS-55"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"request": {
+					"body": "{\"verifyKeysJWT\":5}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"error": "invalid request body",
+				"keyStoreCalled": false
+			}
+		},
+		{
+			"name": "verifykeys-http-body-array",
+			"rules": ["VERIFYKEYS-56", "VERIFYKEYS-55"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"request": {
+					"body": "[\"${token}\"]"
+				}
+			},
+			"want": {
+				"status": 400,
+				"error": "invalid request body",
+				"keyStoreCalled": false
+			}
+		},
+		{
+			"name": "verifykeys-http-body-empty",
+			"rules": ["VERIFYKEYS-55"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"request": {
+					"body": ""
+				}
+			},
+			"want": {
+				"status": 400,
+				"error": "invalid request body",
+				"keyStoreCalled": false
+			}
+		},
+		{
+			"name": "verifykeys-http-body-trailing-data",
+			"rules": ["VERIFYKEYS-56"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"request": {
+					"body": "{\"verifyKeysJWT\":\"${token}\"}x"
+				}
+			},
+			"want": {
+				"status": 400,
+				"error": "invalid request body",
+				"keyStoreCalled": false
+			}
+		},
+		{
+			"name": "verifykeys-http-body-bom",
+			"rules": ["VERIFYKEYS-56"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"request": {
+					"body": "${hex:efbbbf}{\"verifyKeysJWT\":\"${token}\"}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"error": "invalid request body",
+				"keyStoreCalled": false
+			}
+		},
+		{
+			"name": "verifykeys-http-body-invalid-utf8",
+			"rules": ["VERIFYKEYS-56"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"request": {
+					"body": "{\"verifyKeysJWT\":\"${token}\",\"x\":\"${hex:ff}\"}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"error": "invalid request body",
+				"keyStoreCalled": false
+			}
+		},
+		{
+			"name": "verifykeys-http-body-at-cap",
+			"rules": ["VERIFYKEYS-57", "HTTP-07"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"request": {
+					"padTo": 65536
+				}
+			},
+			"want": {
+				"status": 200,
+				"responseJWT": {
+					"key": "partner",
+					"partnerID": "acme",
+					"nonce": 7
+				},
+				"keyStoreCalled": true
+			},
+			"note": "Trailing spaces bring the body to exactly 65536 bytes."
+		},
+		{
+			"name": "verifykeys-http-body-over-cap",
+			"rules": ["VERIFYKEYS-57", "HTTP-07"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"request": {
+					"padTo": 65537
+				}
+			},
+			"want": {
+				"status": 400,
+				"error": "invalid request body",
+				"keyStoreCalled": false
+			},
+			"note": "A complete JSON body padded with trailing spaces to 65537 bytes."
+		},
+		{
+			"name": "verifykeys-http-get-not-allowed",
+			"rules": ["VERIFYKEYS-58", "HTTP-03"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"request": {
+					"method": "GET",
+					"body": ""
+				}
+			},
+			"want": {
+				"status": 405,
+				"allow": "POST",
+				"error": "method not allowed",
+				"routerMayAnswer": true,
+				"keyStoreCalled": false
+			}
+		},
+		{
+			"name": "verifykeys-http-trailing-slash-not-found",
+			"rules": ["VERIFYKEYS-58", "HTTP-02"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"request": {
+					"path": "/boostx/verify-keys/"
+				}
+			},
+			"want": {
+				"status": 404,
+				"error": "not found",
+				"routerMayAnswer": true,
+				"keyStoreCalled": false
+			}
+		},
+		{
+			"name": "verifykeys-http-no-key-store",
+			"rules": ["VERIFYKEYS-60", "HTTP-48"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"keyStore": null
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			}
+		}
+	]
+}

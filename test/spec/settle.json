@@ -1,0 +1,7439 @@
+{
+	"group": "settle",
+	"cases": [
+		{
+			"name": "settle-create-accepted-minimal",
+			"rules": [
+				"SETTLE-01",
+				"SETTLE-02",
+				"SETTLE-03",
+				"SETTLE-04",
+				"SETTLE-05",
+				"SETTLE-06",
+				"SETTLE-08",
+				"SETTLE-09",
+				"SETTLE-27"
+			],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					},
+					"absent": ["settlement.xSettle", "exp", "nbf", "iss", "aud", "sub", "jti", "settlement.demo"]
+				}
+			},
+			"note": "Root claims are iat and settlement only; the SDK never emits exp or nbf, and a settlement carries no demo flag."
+		},
+		{
+			"name": "settle-create-status-win",
+			"rules": ["SETTLE-13"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 25,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 25,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-status-lose",
+			"rules": ["SETTLE-13"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "lose",
+					"amount": 0,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "lose",
+							"payout": {
+								"amount": 0,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-status-cancelled",
+			"rules": ["SETTLE-13"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "cancelled",
+					"amount": 10,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "cancelled",
+							"payout": {
+								"amount": 10,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-status-refund",
+			"rules": ["SETTLE-13"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "refund",
+					"amount": 10,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "refund",
+							"payout": {
+								"amount": 10,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-status-half-win",
+			"rules": ["SETTLE-13"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "half_win",
+					"amount": 17.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "half_win",
+							"payout": {
+								"amount": 17.5,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-status-half-lose",
+			"rules": ["SETTLE-13"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "half_lose",
+					"amount": 5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "half_lose",
+							"payout": {
+								"amount": 5,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-status-cashout",
+			"rules": ["SETTLE-13"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "cashout",
+					"amount": 8.25,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "cashout",
+							"payout": {
+								"amount": 8.25,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-status-unsettled",
+			"rules": ["SETTLE-13"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "unsettled",
+					"amount": 0,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "unsettled",
+							"payout": {
+								"amount": 0,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-lose-with-payout",
+			"rules": ["SETTLE-15"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "lose",
+					"amount": 40,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "lose",
+							"payout": {
+								"amount": 40,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "No status carries arithmetic: a lose may report a payout above 0."
+		},
+		{
+			"name": "settle-create-win-with-zero-payout",
+			"rules": ["SETTLE-17"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 0,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 0,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-unsettled-negative-zero",
+			"rules": ["SETTLE-17", "SETTLE-19"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "unsettled",
+					"amount": {
+						"$number": "-0"
+					},
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "unsettled",
+							"payout": {
+								"amount": 0,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "-0 counts as 0 for the unsettled rule; the payload may spell it 0 or -0."
+		},
+		{
+			"name": "settle-create-amount-negative-zero",
+			"rules": ["SETTLE-16", "SETTLE-19"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": {
+						"$number": "-0"
+					},
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 0,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-amount-not-rounded",
+			"rules": ["SETTLE-20"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 0.30000000000000004,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 0.30000000000000004,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "Major units as given: no rounding, no minor-unit conversion."
+		},
+		{
+			"name": "settle-create-amount-smallest-subnormal",
+			"rules": ["SETTLE-16", "SETTLE-20"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 5e-324,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 5e-324,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-amount-largest-finite",
+			"rules": ["SETTLE-16", "SETTLE-20"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 1.7976931348623157e308,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 1.7976931348623157e308,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-amount-exponent-range",
+			"rules": ["SETTLE-20", "SETTLE-19"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 1e21,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 1e21,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "Compared by value: the payload may write 1e21 in any number form."
+		},
+		{
+			"name": "settle-create-currency-four-letters",
+			"rules": ["SETTLE-21"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USDT",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USDT"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-currency-not-served",
+			"rules": ["SETTLE-22"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "QQQ",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "QQQ"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "The check is on shape only; the SDK keeps no list of served currencies."
+		},
+		{
+			"name": "settle-create-version-zero",
+			"rules": ["SETTLE-23", "SETTLE-18"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 0,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 0,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-version-max-safe-integer",
+			"rules": ["SETTLE-23"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 9007199254740991,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 9007199254740991,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-version-negative-zero",
+			"rules": ["SETTLE-23", "SETTLE-19"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": {
+						"$number": "-0"
+					},
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 0,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-version-millisecond-timestamp",
+			"rules": ["SETTLE-23"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1761955200000,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 1761955200000,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-xsettle-zero-sent",
+			"rules": ["SETTLE-27", "SETTLE-28"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}",
+					"xSettle": 0
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 1,
+							"xSettle": 0,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "An explicit 0 is a real value and stays in the payload."
+		},
+		{
+			"name": "settle-create-xsettle-null-left-out",
+			"rules": ["SETTLE-27"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}",
+					"xSettle": null
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					},
+					"absent": ["settlement.xSettle"]
+				}
+			}
+		},
+		{
+			"name": "settle-create-xsettle-below-one",
+			"rules": ["SETTLE-28"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}",
+					"xSettle": 0.5
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 1,
+							"xSettle": 0.5,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-xsettle-large",
+			"rules": ["SETTLE-28"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}",
+					"xSettle": 1e300
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 1,
+							"xSettle": 1e300,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-xsettle-negative-zero",
+			"rules": ["SETTLE-28", "SETTLE-19"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}",
+					"xSettle": {
+						"$number": "-0"
+					}
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 1,
+							"xSettle": 0,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-settled-at-floor",
+			"rules": ["SETTLE-29", "SETTLE-66"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": 1000000000000
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": 1000000000000
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-settled-at-24h-ahead",
+			"rules": ["SETTLE-29"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs+86400000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs+86400000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "Exactly 24 h ahead of the runner's clock; the SDK's later clock keeps it inside."
+		},
+		{
+			"name": "settle-create-settled-at-long-ago",
+			"rules": ["SETTLE-29", "SETTLE-66"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": 1000000000001
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": 1000000000001
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "Backdating is unrestricted down to the floor."
+		},
+		{
+			"name": "settle-create-ids-colon-and-whitespace",
+			"rules": ["SETTLE-12", "SETTLE-10"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u:1 ",
+					"bet": " b:2:3",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u:1 ",
+								"bet": " b:2:3"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "':' and whitespace in ids are not checked."
+		},
+		{
+			"name": "settle-create-ids-escaped-characters",
+			"rules": ["SETTLE-34", "SETTLE-11", "SETTLE-07"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "a<b>&c",
+					"user": "u\"1\\",
+					"bet": "b\u2028\u2029\n",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "a<b>&c",
+								"user": "u\"1\\",
+								"bet": "b\u2028\u2029\n"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "Payload escaping is implementation-defined; the ids compare as values."
+		},
+		{
+			"name": "settle-create-ids-astral-characters",
+			"rules": ["SETTLE-11"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-\ud83d\ude00",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-\ud83d\ude00"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "A surrogate pair is well-formed Unicode."
+		},
+		{
+			"name": "settle-create-ids-long",
+			"rules": ["SETTLE-74"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "No length limit applies to ids."
+		},
+		{
+			"name": "settle-create-key-null",
+			"rules": ["SETTLE-33"],
+			"op": "settlement.create",
+			"input": {
+				"key": null,
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "settle-create-key-unusable",
+			"rules": ["SETTLE-33"],
+			"op": "settlement.create",
+			"input": {
+				"key": "@unusable",
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "A P-384 key cannot sign ES256."
+		},
+		{
+			"name": "settle-create-key-null-before-empty-params",
+			"rules": ["SETTLE-33", "SETTLE-31"],
+			"op": "settlement.create",
+			"input": {
+				"key": null,
+				"params": {}
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "settle-create-key-unusable-before-every-param",
+			"rules": ["SETTLE-33", "SETTLE-31"],
+			"op": "settlement.create",
+			"input": {
+				"key": "@unusable",
+				"params": {
+					"partner": "",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "WIN",
+					"amount": -1,
+					"currency": "usd",
+					"version": -1,
+					"settledAt": 0,
+					"xSettle": -1
+				}
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "settle-create-params-null",
+			"rules": ["SETTLE-10", "SETTLE-31"],
+			"needs": ["missing-params"],
+			"op": "settlement.create",
+			"input": {
+				"params": null
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partner"
+			},
+			"note": "A missing parameter set reads as an empty one, so the first failure is the partner id."
+		},
+		{
+			"name": "settle-create-params-empty",
+			"rules": ["SETTLE-10", "SETTLE-31"],
+			"op": "settlement.create",
+			"input": {
+				"params": {}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "settle-create-partner-left-out",
+			"rules": ["SETTLE-10"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "settle-create-partner-null",
+			"rules": ["SETTLE-10"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": null,
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "settle-create-partner-empty",
+			"rules": ["SETTLE-10"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "settle-create-user-left-out",
+			"rules": ["SETTLE-10"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "settle-create-user-null",
+			"rules": ["SETTLE-10"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": null,
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "settle-create-user-empty",
+			"rules": ["SETTLE-10"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "settle-create-bet-left-out",
+			"rules": ["SETTLE-10"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "settle-create-bet-null",
+			"rules": ["SETTLE-10"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": null,
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "settle-create-bet-empty",
+			"rules": ["SETTLE-10"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "settle-create-partner-number",
+			"rules": ["SETTLE-10"],
+			"needs": ["untyped-string"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": 7,
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partner"
+			},
+			"note": "Never converted to text."
+		},
+		{
+			"name": "settle-create-bet-number",
+			"rules": ["SETTLE-10"],
+			"needs": ["untyped-string"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": 12345,
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "settle-create-user-boolean",
+			"rules": ["SETTLE-10"],
+			"needs": ["untyped-string"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": true,
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "settle-create-partner-ill-formed",
+			"rules": ["SETTLE-11"],
+			"needs": ["ill-formed-string"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": {
+						"$illFormed": "acme"
+					},
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "settle-create-user-ill-formed",
+			"rules": ["SETTLE-11"],
+			"needs": ["ill-formed-string"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": {
+						"$illFormed": "u-"
+					},
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "settle-create-bet-ill-formed",
+			"rules": ["SETTLE-11"],
+			"needs": ["ill-formed-string"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": {
+						"$illFormed": "b-"
+					},
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "settle-create-status-left-out",
+			"rules": ["SETTLE-13", "SETTLE-70"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "status"
+			}
+		},
+		{
+			"name": "settle-create-status-null",
+			"rules": ["SETTLE-13", "SETTLE-70"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": null,
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "status"
+			}
+		},
+		{
+			"name": "settle-create-status-empty",
+			"rules": ["SETTLE-13", "SETTLE-70"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "status"
+			}
+		},
+		{
+			"name": "settle-create-status-uppercase",
+			"rules": ["SETTLE-13"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "WIN",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "status"
+			}
+		},
+		{
+			"name": "settle-create-status-padded",
+			"rules": ["SETTLE-13"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win ",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "status"
+			}
+		},
+		{
+			"name": "settle-create-status-hyphen",
+			"rules": ["SETTLE-13"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "half-win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "status"
+			}
+		},
+		{
+			"name": "settle-create-status-unknown",
+			"rules": ["SETTLE-13"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "void",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "status"
+			}
+		},
+		{
+			"name": "settle-create-status-number",
+			"rules": ["SETTLE-13"],
+			"needs": ["untyped-string"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": 1,
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "status"
+			}
+		},
+		{
+			"name": "settle-create-amount-left-out",
+			"rules": ["SETTLE-18", "SETTLE-16"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "lose",
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			},
+			"wantZeroValue": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "lose",
+							"payout": {
+								"amount": 0,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "An SDK that cannot tell an unset amount from 0 sends 0 and documents it."
+		},
+		{
+			"name": "settle-create-amount-null",
+			"rules": ["SETTLE-18", "SETTLE-16"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "lose",
+					"amount": null,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			},
+			"wantZeroValue": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "lose",
+							"payout": {
+								"amount": 0,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-amount-negative",
+			"rules": ["SETTLE-16"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": -0.01,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "settle-create-amount-negative-subnormal",
+			"rules": ["SETTLE-16"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": -5e-324,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "settle-create-amount-nan",
+			"rules": ["SETTLE-16"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": {
+						"$number": "NaN"
+					},
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "settle-create-amount-infinity",
+			"rules": ["SETTLE-16"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": {
+						"$number": "Infinity"
+					},
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "settle-create-amount-negative-infinity",
+			"rules": ["SETTLE-16"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": {
+						"$number": "-Infinity"
+					},
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "settle-create-amount-string",
+			"rules": ["SETTLE-16"],
+			"needs": ["untyped-number"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": "12.5",
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "settle-create-unsettled-nonzero-amount",
+			"rules": ["SETTLE-17"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "unsettled",
+					"amount": 0.01,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "settle-create-unsettled-subnormal-amount",
+			"rules": ["SETTLE-17"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "unsettled",
+					"amount": 5e-324,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "settle-create-currency-left-out",
+			"rules": ["SETTLE-21"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "settle-create-currency-null",
+			"rules": ["SETTLE-21"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": null,
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "settle-create-currency-empty",
+			"rules": ["SETTLE-21"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "settle-create-currency-lowercase",
+			"rules": ["SETTLE-21"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "usd",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "settle-create-currency-mixed-case",
+			"rules": ["SETTLE-21"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "Usd",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "settle-create-currency-two-letters",
+			"rules": ["SETTLE-21"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "US",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "settle-create-currency-five-letters",
+			"rules": ["SETTLE-21"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USDTT",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "settle-create-currency-trailing-newline",
+			"rules": ["SETTLE-21"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD\n",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "settle-create-currency-leading-space",
+			"rules": ["SETTLE-21"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": " USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "settle-create-currency-digits",
+			"rules": ["SETTLE-21"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "US1",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "settle-create-currency-non-ascii-letter",
+			"rules": ["SETTLE-21"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "\u00dcSD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "settle-create-currency-fullwidth",
+			"rules": ["SETTLE-21"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "\uff35\uff33\uff24",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "settle-create-currency-number",
+			"rules": ["SETTLE-21"],
+			"needs": ["untyped-string"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": 840,
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "settle-create-version-left-out",
+			"rules": ["SETTLE-18", "SETTLE-23"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "version"
+			},
+			"wantZeroValue": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 0,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "An SDK that cannot tell an unset version from 0 sends 0 and documents it."
+		},
+		{
+			"name": "settle-create-version-null",
+			"rules": ["SETTLE-18", "SETTLE-23"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": null,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "version"
+			},
+			"wantZeroValue": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 0,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-create-version-negative",
+			"rules": ["SETTLE-23"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": -1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "version"
+			}
+		},
+		{
+			"name": "settle-create-version-above-max-safe-integer",
+			"rules": ["SETTLE-23"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 9007199254740992,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "version"
+			}
+		},
+		{
+			"name": "settle-create-version-fraction",
+			"rules": ["SETTLE-23"],
+			"needs": ["fixed-int"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1.5,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "version"
+			}
+		},
+		{
+			"name": "settle-create-version-nan",
+			"rules": ["SETTLE-23"],
+			"needs": ["non-finite"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": {
+						"$number": "NaN"
+					},
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "version"
+			}
+		},
+		{
+			"name": "settle-create-version-infinity",
+			"rules": ["SETTLE-23"],
+			"needs": ["non-finite"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": {
+						"$number": "Infinity"
+					},
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "version"
+			}
+		},
+		{
+			"name": "settle-create-version-string",
+			"rules": ["SETTLE-23"],
+			"needs": ["untyped-number"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": "1",
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "version"
+			}
+		},
+		{
+			"name": "settle-create-xsettle-negative",
+			"rules": ["SETTLE-28"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}",
+					"xSettle": -0.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xsettle"
+			}
+		},
+		{
+			"name": "settle-create-xsettle-negative-subnormal",
+			"rules": ["SETTLE-28"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}",
+					"xSettle": -5e-324
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xsettle"
+			}
+		},
+		{
+			"name": "settle-create-xsettle-nan",
+			"rules": ["SETTLE-28"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}",
+					"xSettle": {
+						"$number": "NaN"
+					}
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xsettle"
+			}
+		},
+		{
+			"name": "settle-create-xsettle-infinity",
+			"rules": ["SETTLE-28"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}",
+					"xSettle": {
+						"$number": "Infinity"
+					}
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xsettle"
+			}
+		},
+		{
+			"name": "settle-create-xsettle-string",
+			"rules": ["SETTLE-28"],
+			"needs": ["untyped-number"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}",
+					"xSettle": "1.5"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xsettle"
+			}
+		},
+		{
+			"name": "settle-create-settled-at-left-out",
+			"rules": ["SETTLE-30"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "settledAt"
+			},
+			"note": "0 is not a legal settledAt, so absent, null and 0 all read as missing (unlike amount and version)."
+		},
+		{
+			"name": "settle-create-settled-at-null",
+			"rules": ["SETTLE-30"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": null
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "settledAt"
+			}
+		},
+		{
+			"name": "settle-create-settled-at-zero",
+			"rules": ["SETTLE-30"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": 0
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "settledAt"
+			}
+		},
+		{
+			"name": "settle-create-settled-at-negative-zero",
+			"rules": ["SETTLE-30"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": {
+						"$number": "-0"
+					}
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "settledAt"
+			}
+		},
+		{
+			"name": "settle-create-settled-at-below-floor",
+			"rules": ["SETTLE-29", "SETTLE-30"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": 999999999999
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "settledAt"
+			}
+		},
+		{
+			"name": "settle-create-settled-at-negative",
+			"rules": ["SETTLE-30"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": -1
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "settledAt"
+			}
+		},
+		{
+			"name": "settle-create-settled-at-seconds",
+			"rules": ["SETTLE-29"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${now}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "settledAt"
+			},
+			"note": "A seconds-scale timestamp is below the 1e12 ms floor."
+		},
+		{
+			"name": "settle-create-settled-at-past-24h-ahead",
+			"rules": ["SETTLE-29"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs+86410000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "settledAt"
+			},
+			"note": "10 s beyond the 24 h ceiling, so the SDK's later clock still refuses it."
+		},
+		{
+			"name": "settle-create-settled-at-microseconds",
+			"rules": ["SETTLE-29"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": 1761955200000000
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "settledAt"
+			}
+		},
+		{
+			"name": "settle-create-settled-at-fraction",
+			"rules": ["SETTLE-30"],
+			"needs": ["fixed-int"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": 1000000000000.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "settledAt"
+			}
+		},
+		{
+			"name": "settle-create-settled-at-nan",
+			"rules": ["SETTLE-30"],
+			"needs": ["non-finite"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": {
+						"$number": "NaN"
+					}
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "settledAt"
+			}
+		},
+		{
+			"name": "settle-create-settled-at-string",
+			"rules": ["SETTLE-30"],
+			"needs": ["untyped-number"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "1761955200000"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "settledAt"
+			}
+		},
+		{
+			"name": "settle-create-order-partner-before-user-and-bet",
+			"rules": ["SETTLE-31", "SETTLE-10"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "",
+					"user": "",
+					"bet": "",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "settle-create-order-user-before-bet",
+			"rules": ["SETTLE-31", "SETTLE-10"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": null,
+					"bet": null,
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "settle-create-order-bet-before-status",
+			"rules": ["SETTLE-31", "SETTLE-10", "SETTLE-13"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "",
+					"status": "WIN",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "settle-create-order-status-before-amount",
+			"rules": ["SETTLE-31", "SETTLE-13", "SETTLE-16"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "WIN",
+					"amount": -1,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "status"
+			}
+		},
+		{
+			"name": "settle-create-order-amount-before-currency",
+			"rules": ["SETTLE-31", "SETTLE-16", "SETTLE-21"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": {
+						"$number": "NaN"
+					},
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "settle-create-order-unsettled-rule-before-currency",
+			"rules": ["SETTLE-31", "SETTLE-17", "SETTLE-21"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "unsettled",
+					"amount": 5,
+					"currency": "usd",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			}
+		},
+		{
+			"name": "settle-create-order-currency-missing-before-version",
+			"rules": ["SETTLE-31", "SETTLE-21", "SETTLE-23"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "",
+					"version": -1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "settle-create-order-currency-invalid-before-version",
+			"rules": ["SETTLE-31", "SETTLE-21", "SETTLE-23"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "usd",
+					"version": -1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			}
+		},
+		{
+			"name": "settle-create-order-version-before-xsettle",
+			"rules": ["SETTLE-31", "SETTLE-23", "SETTLE-28"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": -1,
+					"settledAt": "${nowMs-60000}",
+					"xSettle": -1
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "version"
+			}
+		},
+		{
+			"name": "settle-create-order-xsettle-before-settled-at",
+			"rules": ["SETTLE-31", "SETTLE-28", "SETTLE-30"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"xSettle": -1
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "xsettle"
+			}
+		},
+		{
+			"name": "settle-create-order-settled-at-missing-before-well-formedness",
+			"rules": ["SETTLE-31", "SETTLE-30", "SETTLE-11"],
+			"needs": ["ill-formed-string"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": {
+						"$illFormed": "b-"
+					},
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": 0
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "settledAt"
+			}
+		},
+		{
+			"name": "settle-create-order-settled-at-invalid-before-well-formedness",
+			"rules": ["SETTLE-31", "SETTLE-29", "SETTLE-11"],
+			"needs": ["ill-formed-string"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": {
+						"$illFormed": "b-"
+					},
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": 999999999999
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "settledAt"
+			}
+		},
+		{
+			"name": "settle-create-order-status-before-well-formedness",
+			"rules": ["SETTLE-31", "SETTLE-13", "SETTLE-11"],
+			"needs": ["ill-formed-string"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": {
+						"$illFormed": "acme"
+					},
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "void",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "status"
+			}
+		},
+		{
+			"name": "settle-create-order-emptiness-before-well-formedness",
+			"rules": ["SETTLE-31", "SETTLE-10", "SETTLE-11"],
+			"needs": ["ill-formed-string"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": {
+						"$illFormed": "u-"
+					},
+					"bet": "",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["missing_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "settle-create-order-user-well-formedness-before-bet",
+			"rules": ["SETTLE-31", "SETTLE-11"],
+			"needs": ["ill-formed-string"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": {
+						"$illFormed": "u-"
+					},
+					"bet": {
+						"$illFormed": "b-"
+					},
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "settle-create-order-status-absent-before-amount-absent",
+			"rules": ["SETTLE-31", "SETTLE-70", "SETTLE-18"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "status"
+			}
+		},
+		{
+			"name": "settle-create-order-amount-absent-before-currency",
+			"rules": ["SETTLE-31", "SETTLE-18", "SETTLE-21"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			},
+			"wantZeroValue": {
+				"error": ["missing_claim"],
+				"field": "currency"
+			},
+			"note": "Without absence the amount is 0, which is legal, so the currency is the first fault."
+		},
+		{
+			"name": "settle-create-order-version-absent-before-xsettle",
+			"rules": ["SETTLE-31", "SETTLE-18", "SETTLE-28"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"settledAt": "${nowMs-60000}",
+					"xSettle": -1
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "version"
+			},
+			"wantZeroValue": {
+				"error": ["invalid_claim"],
+				"field": "xsettle"
+			},
+			"note": "Without absence the version is 0, which is legal, so xSettle is the first fault."
+		},
+		{
+			"name": "settle-keystore-private-key-left-out",
+			"rules": ["SETTLE-60"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"partnerPublicKey": "partner",
+				"boostxPublicKey": "boostx",
+				"lookups": [
+					{
+						"method": "partnerPrivateKey",
+						"partner": "acme",
+						"want": {
+							"error": ["invalid_private_key"]
+						}
+					},
+					{
+						"method": "partnerPrivateKey",
+						"partner": "other",
+						"want": {
+							"error": ["unknown_partner"]
+						}
+					}
+				]
+			},
+			"want": {
+				"ok": {}
+			},
+			"note": "A served partner without a private key is invalid_private_key; an unserved one is unknown_partner."
+		},
+		{
+			"name": "settle-keystore-private-key-null",
+			"rules": ["SETTLE-60"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"partnerPublicKey": "partner",
+				"partnerPrivateKey": null,
+				"boostxPublicKey": "boostx",
+				"lookups": [
+					{
+						"method": "partnerPrivateKey",
+						"partner": "acme",
+						"want": {
+							"error": ["invalid_private_key"]
+						}
+					}
+				]
+			},
+			"want": {
+				"ok": {}
+			}
+		},
+		{
+			"name": "settle-keystore-exact-partner-match",
+			"rules": ["SETTLE-73", "SETTLE-60"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"partnerPrivateKey": "partner",
+				"lookups": [
+					{
+						"method": "partnerPrivateKey",
+						"partner": "acme",
+						"want": {
+							"ok": {
+								"key": "partner"
+							}
+						}
+					},
+					{
+						"method": "partnerPrivateKey",
+						"partner": "ACME",
+						"want": {
+							"error": ["unknown_partner"]
+						}
+					},
+					{
+						"method": "partnerPrivateKey",
+						"partner": " acme",
+						"want": {
+							"error": ["unknown_partner"]
+						}
+					},
+					{
+						"method": "partnerPrivateKey",
+						"partner": "acme\n",
+						"want": {
+							"error": ["unknown_partner"]
+						}
+					}
+				]
+			},
+			"want": {
+				"ok": {}
+			},
+			"note": "Partner ids are matched byte for byte: no case folding, no trimming."
+		},
+		{
+			"name": "settle-client-accepted",
+			"rules": ["SETTLE-41", "SETTLE-42", "SETTLE-43", "SETTLE-50", "SETTLE-63", "SETTLE-49"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"keyStoreCalled": true,
+				"request": {
+					"url": "https://boostx.test/api/integration/settlement",
+					"method": "POST",
+					"contentType": "application/json",
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					},
+					"absent": ["settlement.xSettle", "exp", "nbf", "iss", "aud", "sub", "jti", "settlement.demo"]
+				}
+			},
+			"note": "One POST with Content-Type application/json and a body whose only member is settlementJWT."
+		},
+		{
+			"name": "settle-client-accepted-xsettle-zero",
+			"rules": ["SETTLE-27", "SETTLE-43"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}",
+					"xSettle": 0
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"request": {
+					"url": "https://boostx.test/api/integration/settlement",
+					"method": "POST",
+					"contentType": "application/json",
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 1,
+							"xSettle": 0,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					},
+					"absent": ["exp", "nbf", "iss", "aud", "sub", "jti", "settlement.demo"]
+				}
+			}
+		},
+		{
+			"name": "settle-client-accepted-201",
+			"rules": ["SETTLE-51"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 201,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-accepted-299",
+			"rules": ["SETTLE-51"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 299,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-accepted-extra-members",
+			"rules": ["SETTLE-50"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"status\":200,\"result\":{\"id\":7,\"ok\":true},\"note\":null}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-accepted-member-nested-64-levels",
+			"rules": ["SETTLE-50"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true},\"x\":[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"keyStoreCalled": true
+			},
+			"note": "The answer nests 64 levels deep: the body object, then 63 arrays in the ignored member x."
+		},
+		{
+			"name": "settle-client-accepted-surrounding-whitespace",
+			"rules": ["SETTLE-50"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": " \t\r\n{\"result\":{\"ok\":true}}\r\n "
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-accepted-escaped-member-names",
+			"rules": ["SETTLE-53"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"res\\u0075lt\":{\"\\u006fk\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"keyStoreCalled": true
+			},
+			"note": "Member names are compared after JSON unescaping."
+		},
+		{
+			"name": "settle-client-accepted-last-result-wins",
+			"rules": ["SETTLE-53", "SETTLE-50"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":false},\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-accepted-last-ok-wins",
+			"rules": ["SETTLE-53"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":false,\"ok\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-accepted-case-variant-ignored",
+			"rules": ["SETTLE-53"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true},\"Result\":{\"ok\":false},\"RESULT\":null}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"keyStoreCalled": true
+			},
+			"note": "A member spelled in another case is unknown and overrides nothing."
+		},
+		{
+			"name": "settle-client-accepted-error-member-ignored",
+			"rules": ["SETTLE-50"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true},\"error\":\"ignored\"}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-accepted-content-type-ignored",
+			"rules": ["SETTLE-50", "SETTLE-71"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}",
+					"headers": {
+						"content-type": "text/html"
+					}
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-accepted-no-content-type",
+			"rules": ["SETTLE-50", "SETTLE-71"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}",
+					"headers": {}
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-unexpected-empty-body",
+			"rules": ["SETTLE-52", "SETTLE-55"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": ""
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-empty-object",
+			"rules": ["SETTLE-52", "SETTLE-57"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-result-empty",
+			"rules": ["SETTLE-52"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{}}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-ok-string",
+			"rules": ["SETTLE-52"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":\"true\"}}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-ok-number",
+			"rules": ["SETTLE-52"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":1}}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-ok-false",
+			"rules": ["SETTLE-52"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":false}}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-ok-null",
+			"rules": ["SETTLE-52"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":null}}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-result-null",
+			"rules": ["SETTLE-52"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":null}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-result-true",
+			"rules": ["SETTLE-52"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":true}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-result-array",
+			"rules": ["SETTLE-52"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":[{\"ok\":true}]}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-body-null",
+			"rules": ["SETTLE-52"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "null"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-body-array",
+			"rules": ["SETTLE-52"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "[{\"result\":{\"ok\":true}}]"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-ok-at-root",
+			"rules": ["SETTLE-52"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"ok\":true}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-html-page",
+			"rules": ["SETTLE-52"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "<!doctype html><html><body>ok</body></html>"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-trailing-text",
+			"rules": ["SETTLE-50"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}x"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-two-values",
+			"rules": ["SETTLE-50"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-result-case-variant",
+			"rules": ["SETTLE-53"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"Result\":{\"OK\":true}}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-ok-case-variant",
+			"rules": ["SETTLE-53"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"OK\":true}}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-case-variant-does-not-merge",
+			"rules": ["SETTLE-53"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":false},\"Result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-later-null-result-wins",
+			"rules": ["SETTLE-53"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true},\"result\":null}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-later-result-not-merged",
+			"rules": ["SETTLE-53"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true},\"result\":{}}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-later-ok-false-wins",
+			"rules": ["SETTLE-53"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true,\"ok\":false}}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-error-only",
+			"rules": ["SETTLE-52", "SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"error\":\"not-stored\"}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			},
+			"note": "A 2xx is never read for an error member: its text is always 'unexpected response'."
+		},
+		{
+			"name": "settle-client-unexpected-byte-order-mark",
+			"rules": ["SETTLE-54"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "${hex:efbbbf}{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			},
+			"note": "The capped bytes begin with EF BB BF, so they are not JSON for the SDK."
+		},
+		{
+			"name": "settle-client-unexpected-invalid-utf8",
+			"rules": ["SETTLE-54"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true},\"x\":\"${hex:ff}\"}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-overlong-utf8",
+			"rules": ["SETTLE-54"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true},\"x\":\"${hex:c0af}\"}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-encoded-surrogate",
+			"rules": ["SETTLE-54"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true},\"x\":\"${hex:eda080}\"}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-above-unicode-range",
+			"rules": ["SETTLE-54"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true},\"x\":\"${hex:f4908080}\"}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-unexpected-204-no-content",
+			"rules": ["SETTLE-52"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 204
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 204,
+				"apiError": "unexpected response",
+				"requests": 1
+			},
+			"note": "A 204 has no body; a fake transport answers it with a null body."
+		},
+		{
+			"name": "settle-client-unexpected-202-empty-object",
+			"rules": ["SETTLE-51", "SETTLE-52"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 202,
+					"body": "{}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 202,
+				"apiError": "unexpected response",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-accepted-padded-to-cap",
+			"rules": ["SETTLE-55"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}",
+					"padTo": 65536,
+					"padAt": -1
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"keyStoreCalled": true
+			},
+			"note": "65536 bytes, whitespace inserted before the final brace: all of it is read."
+		},
+		{
+			"name": "settle-client-unexpected-acceptance-cut-by-cap",
+			"rules": ["SETTLE-55"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}",
+					"padTo": 65537,
+					"padAt": -1
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			},
+			"note": "One byte over the cap: the final brace is beyond the first 65536 bytes."
+		},
+		{
+			"name": "settle-client-accepted-bytes-beyond-cap-ignored",
+			"rules": ["SETTLE-55", "SETTLE-54"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}${hex:ff}",
+					"padTo": 65537,
+					"padAt": -1
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"keyStoreCalled": true
+			},
+			"note": "Byte 65537 is 0xFF and is discarded unread, so the capped bytes are a valid acceptance."
+		},
+		{
+			"name": "settle-client-unexpected-garbage-at-cap",
+			"rules": ["SETTLE-55"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}x",
+					"padTo": 65536,
+					"padAt": -1
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 200,
+				"apiError": "unexpected response",
+				"requests": 1
+			},
+			"note": "Byte 65536, the last one read, is 'x' after the acceptance."
+		},
+		{
+			"name": "settle-client-error-text-padded-to-cap",
+			"rules": ["SETTLE-55", "SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 500,
+					"body": "{\"status\":500,\"error\":\"not-stored\"}",
+					"padTo": 65536,
+					"padAt": -1
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 500,
+				"apiError": "not-stored",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-cut-by-cap",
+			"rules": ["SETTLE-55", "SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 500,
+					"body": "{\"status\":500,\"error\":\"not-stored\"}",
+					"padTo": 65537,
+					"padAt": -1
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 500,
+				"apiError": "HTTP 500",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-not-stored",
+			"rules": ["SETTLE-56", "SETTLE-63", "SETTLE-57"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 500,
+					"body": "{\"status\":500,\"error\":\"not-stored\"}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 500,
+				"apiError": "not-stored",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-unauthorized",
+			"rules": ["SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 401,
+					"body": "{\"status\":401,\"error\":\"unauthorized\"}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 401,
+				"apiError": "unauthorized",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-unknown-partner",
+			"rules": ["SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 404,
+					"body": "{\"status\":404,\"error\":\"not found\"}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 404,
+				"apiError": "not found",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-invalid-field",
+			"rules": ["SETTLE-56", "SETTLE-57"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 400,
+					"body": "{\"status\":400,\"error\":\"invalid-version\"}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 400,
+				"apiError": "invalid-version",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-plain-text-404",
+			"rules": ["SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 404,
+					"body": "Not Found",
+					"headers": {
+						"content-type": "text/plain;charset=UTF-8"
+					}
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 404,
+				"apiError": "HTTP 404",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-html-500",
+			"rules": ["SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 500,
+					"body": "<html><body>Server error</body></html>",
+					"headers": {
+						"content-type": "text/html"
+					}
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 500,
+				"apiError": "HTTP 500",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-empty-body",
+			"rules": ["SETTLE-56", "SETTLE-55"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 502,
+					"body": ""
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 502,
+				"apiError": "HTTP 502",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-teapot-no-reason-phrase",
+			"rules": ["SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 418,
+					"body": ""
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 418,
+				"apiError": "HTTP 418",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-nonstandard-status",
+			"rules": ["SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 599,
+					"body": "oops"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 599,
+				"apiError": "HTTP 599",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-error-empty",
+			"rules": ["SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 400,
+					"body": "{\"error\":\"\"}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 400,
+				"apiError": "HTTP 400",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-error-number",
+			"rules": ["SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 400,
+					"body": "{\"error\":404}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 400,
+				"apiError": "HTTP 400",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-error-null",
+			"rules": ["SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 400,
+					"body": "{\"error\":null}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 400,
+				"apiError": "HTTP 400",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-error-object",
+			"rules": ["SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 400,
+					"body": "{\"error\":{\"code\":\"x\"}}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 400,
+				"apiError": "HTTP 400",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-body-json-string",
+			"rules": ["SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 404,
+					"body": "\"not found\""
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 404,
+				"apiError": "HTTP 404",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-body-array",
+			"rules": ["SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 400,
+					"body": "[{\"error\":\"x\"}]"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 400,
+				"apiError": "HTTP 400",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-error-case-variant",
+			"rules": ["SETTLE-53", "SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 400,
+					"body": "{\"Error\":\"x\"}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 400,
+				"apiError": "HTTP 400",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-error-case-variant-ignored",
+			"rules": ["SETTLE-53", "SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 400,
+					"body": "{\"error\":\"real\",\"Error\":\"fake\"}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 400,
+				"apiError": "real",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-error-escaped-name",
+			"rules": ["SETTLE-53", "SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 400,
+					"body": "{\"\\u0065rror\":\"escaped\"}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 400,
+				"apiError": "escaped",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-error-escaped-text",
+			"rules": ["SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 400,
+					"body": "{\"error\":\"a\\\"b\\u00e9\\nc\"}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 400,
+				"apiError": "a\"b\u00e9\nc",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-error-last-wins",
+			"rules": ["SETTLE-53", "SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 400,
+					"body": "{\"error\":\"first\",\"error\":\"second\"}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 400,
+				"apiError": "second",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-error-later-null-wins",
+			"rules": ["SETTLE-53", "SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 400,
+					"body": "{\"error\":\"first\",\"error\":null}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 400,
+				"apiError": "HTTP 400",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-error-surrounding-whitespace",
+			"rules": ["SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 503,
+					"body": " \n{\"error\":\"busy\"}\n "
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 503,
+				"apiError": "busy",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-error-trailing-text",
+			"rules": ["SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 500,
+					"body": "{\"error\":\"not-stored\"}x"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 500,
+				"apiError": "HTTP 500",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-error-byte-order-mark",
+			"rules": ["SETTLE-54", "SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 500,
+					"body": "${hex:efbbbf}{\"error\":\"not-stored\"}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 500,
+				"apiError": "HTTP 500",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-error-invalid-utf8",
+			"rules": ["SETTLE-54", "SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 500,
+					"body": "{\"error\":\"not-stored\",\"x\":\"${hex:ff}\"}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 500,
+				"apiError": "HTTP 500",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-error-text-acceptance-on-500",
+			"rules": ["SETTLE-50", "SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 500,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 500,
+				"apiError": "HTTP 500",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-redirect-301-not-followed",
+			"rules": ["SETTLE-49", "SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 301,
+					"body": "",
+					"headers": {
+						"location": "https://boostx.test/elsewhere"
+					}
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 301,
+				"apiError": "HTTP 301",
+				"requests": 1
+			},
+			"note": "A redirect is an API error with its own status; the SDK sends one request and follows nothing."
+		},
+		{
+			"name": "settle-client-redirect-308-error-text",
+			"rules": ["SETTLE-49", "SETTLE-56"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 308,
+					"body": "{\"error\":\"moved\"}",
+					"headers": {
+						"content-type": "application/json",
+						"location": "https://boostx.test/x"
+					}
+				}
+			},
+			"want": {
+				"error": ["api_error"],
+				"status": 308,
+				"apiError": "moved",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-base-url-default",
+			"rules": ["SETTLE-36", "SETTLE-39"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": null
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"request": {
+					"url": "https://partners-s2s.boostx.cloud/api/integration/settlement",
+					"method": "POST",
+					"contentType": "application/json"
+				}
+			},
+			"note": "A null base URL selects the production default."
+		},
+		{
+			"name": "settle-client-base-url-trailing-slashes",
+			"rules": ["SETTLE-37"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "https://boostx.test///"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"request": {
+					"url": "https://boostx.test/api/integration/settlement",
+					"method": "POST",
+					"contentType": "application/json"
+				}
+			}
+		},
+		{
+			"name": "settle-client-base-url-endpoint-url",
+			"rules": ["SETTLE-37"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "https://boostx.test/api/integration/settlement"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"request": {
+					"url": "https://boostx.test/api/integration/settlement",
+					"method": "POST",
+					"contentType": "application/json"
+				}
+			}
+		},
+		{
+			"name": "settle-client-base-url-endpoint-url-trailing-slash",
+			"rules": ["SETTLE-37"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "https://boostx.test/api/integration/settlement//"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"request": {
+					"url": "https://boostx.test/api/integration/settlement",
+					"method": "POST",
+					"contentType": "application/json"
+				}
+			},
+			"note": "Trailing slashes go first, then the endpoint path."
+		},
+		{
+			"name": "settle-client-base-url-endpoint-removed-once",
+			"rules": ["SETTLE-37"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "https://boostx.test/api/integration/settlement/api/integration/settlement"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"request": {
+					"url": "https://boostx.test/api/integration/settlement/api/integration/settlement",
+					"method": "POST",
+					"contentType": "application/json"
+				}
+			}
+		},
+		{
+			"name": "settle-client-base-url-endpoint-case-sensitive",
+			"rules": ["SETTLE-37"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "https://boostx.test/API/integration/settlement"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"request": {
+					"url": "https://boostx.test/API/integration/settlement/api/integration/settlement",
+					"method": "POST",
+					"contentType": "application/json"
+				}
+			}
+		},
+		{
+			"name": "settle-client-base-url-slash-before-endpoint-kept",
+			"rules": ["SETTLE-37", "SETTLE-41"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "https://boostx.test//api/integration/settlement"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"request": {
+					"url": "https://boostx.test//api/integration/settlement",
+					"method": "POST",
+					"contentType": "application/json"
+				}
+			},
+			"note": "Only the endpoint path is removed; the slash before it stays."
+		},
+		{
+			"name": "settle-client-base-url-path-prefix",
+			"rules": ["SETTLE-37", "SETTLE-41"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "https://boostx.test/prefix/"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"request": {
+					"url": "https://boostx.test/prefix/api/integration/settlement",
+					"method": "POST",
+					"contentType": "application/json"
+				}
+			}
+		},
+		{
+			"name": "settle-client-base-url-port",
+			"rules": ["SETTLE-41"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "https://boostx.test:8443"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"request": {
+					"url": "https://boostx.test:8443/api/integration/settlement",
+					"method": "POST",
+					"contentType": "application/json"
+				}
+			}
+		},
+		{
+			"name": "settle-client-base-url-query-concatenated",
+			"rules": ["SETTLE-41", "SETTLE-37"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "https://boostx.test/?env=a"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"request": {
+					"url": "https://boostx.test/?env=a/api/integration/settlement",
+					"method": "POST",
+					"contentType": "application/json"
+				}
+			},
+			"note": "Plain string concatenation: the endpoint path lands after the query."
+		},
+		{
+			"name": "settle-client-base-url-http-scheme",
+			"rules": ["SETTLE-39", "SETTLE-40"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "http://boostx.test"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"request": {
+					"url": "http://boostx.test/api/integration/settlement",
+					"method": "POST",
+					"contentType": "application/json"
+				}
+			}
+		},
+		{
+			"name": "settle-client-base-url-scheme-case-insensitive",
+			"rules": ["SETTLE-39"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "HTTPS://boostx.test"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1
+			},
+			"note": "The scheme is compared ignoring ASCII case. The URL a transport records may lowercase it, so it is not compared."
+		},
+		{
+			"name": "settle-client-base-url-ascii-whitespace-trimmed",
+			"rules": ["SETTLE-38"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": " \t\n\u000b\f\rhttps://boostx.test/ \r\n\t"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"request": {
+					"url": "https://boostx.test/api/integration/settlement",
+					"method": "POST",
+					"contentType": "application/json"
+				}
+			},
+			"note": "Exactly U+0009-U+000D and U+0020 are trimmed, before the slashes."
+		},
+		{
+			"name": "settle-client-base-url-empty",
+			"rules": ["SETTLE-39"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": ""
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			},
+			"note": "An empty base URL is refused, never replaced by the default."
+		},
+		{
+			"name": "settle-client-base-url-whitespace-only",
+			"rules": ["SETTLE-38", "SETTLE-39"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": " \t\r\n"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			}
+		},
+		{
+			"name": "settle-client-base-url-only-slashes",
+			"rules": ["SETTLE-37", "SETTLE-39"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "///"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			}
+		},
+		{
+			"name": "settle-client-base-url-no-scheme",
+			"rules": ["SETTLE-39"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "boostx.test"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			}
+		},
+		{
+			"name": "settle-client-base-url-ftp-scheme",
+			"rules": ["SETTLE-39", "SETTLE-40"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "ftp://boostx.test"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			}
+		},
+		{
+			"name": "settle-client-base-url-mailto-scheme",
+			"rules": ["SETTLE-39", "SETTLE-40"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "mailto:ops@boostx.test"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			}
+		},
+		{
+			"name": "settle-client-base-url-single-slash",
+			"rules": ["SETTLE-39"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "http:/boostx.test"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			},
+			"note": "The literal prefix http:// or https:// is required; no parser repair applies."
+		},
+		{
+			"name": "settle-client-base-url-no-slashes",
+			"rules": ["SETTLE-39"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "https:boostx.test"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			}
+		},
+		{
+			"name": "settle-client-base-url-scheme-relative",
+			"rules": ["SETTLE-39"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "//boostx.test"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			}
+		},
+		{
+			"name": "settle-client-base-url-empty-host",
+			"rules": ["SETTLE-39"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "https://"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			}
+		},
+		{
+			"name": "settle-client-base-url-empty-host-with-path",
+			"rules": ["SETTLE-39"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "https:///api"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			}
+		},
+		{
+			"name": "settle-client-base-url-empty-host-with-port",
+			"rules": ["SETTLE-39"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "https://:443"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			}
+		},
+		{
+			"name": "settle-client-base-url-endpoint-path-only",
+			"rules": ["SETTLE-37", "SETTLE-39"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "/api/integration/settlement"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			}
+		},
+		{
+			"name": "settle-client-base-url-byte-order-mark-not-trimmed",
+			"rules": ["SETTLE-38", "SETTLE-39"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "\ufeffhttps://boostx.test"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			}
+		},
+		{
+			"name": "settle-client-base-url-nbsp-not-trimmed",
+			"rules": ["SETTLE-38", "SETTLE-39"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "\u00a0https://boostx.test"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			}
+		},
+		{
+			"name": "settle-client-base-url-next-line-not-trimmed",
+			"rules": ["SETTLE-38", "SETTLE-39"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "\u0085https://boostx.test"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			}
+		},
+		{
+			"name": "settle-client-base-url-ideographic-space-not-trimmed",
+			"rules": ["SETTLE-38", "SETTLE-39"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"baseURL": "\u3000https://boostx.test"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			}
+		},
+		{
+			"name": "settle-client-no-key-store",
+			"rules": ["SETTLE-35"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"keyStore": null
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			},
+			"note": "keyStore null: no store at all (JS null, Go nil), refused when the client is built."
+		},
+		{
+			"name": "settle-client-unknown-partner",
+			"rules": ["SETTLE-60", "SETTLE-59"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"keyStore": {
+					"other": "partner"
+				}
+			},
+			"want": {
+				"error": ["unknown_partner"],
+				"requests": 0,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-store-has-no-private-key",
+			"rules": ["SETTLE-60"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"keyStore": {
+					"acme": null
+				}
+			},
+			"want": {
+				"error": ["invalid_private_key"],
+				"requests": 0,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-store-returns-unusable-key",
+			"rules": ["SETTLE-33", "SETTLE-60"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"keyStore": {
+					"acme": "@unusable"
+				}
+			},
+			"want": {
+				"error": ["invalid_private_key"],
+				"requests": 0,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-store-plain-error-passes-through",
+			"rules": ["SETTLE-58"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"keyStore": {
+					"acme": {
+						"error": "other"
+					}
+				}
+			},
+			"want": {
+				"error": [],
+				"requests": 0,
+				"keyStoreCalled": true
+			},
+			"note": "An error from outside the SDK carries no taxonomy category and reaches the caller unchanged."
+		},
+		{
+			"name": "settle-client-key-lookup-before-params",
+			"rules": ["SETTLE-59", "SETTLE-31"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "WIN",
+					"amount": -1,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"keyStore": {
+					"other": "partner"
+				}
+			},
+			"want": {
+				"error": ["unknown_partner"],
+				"requests": 0,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-unusable-key-before-params",
+			"rules": ["SETTLE-33", "SETTLE-59"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "WIN",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"keyStore": {
+					"acme": "@unusable"
+				}
+			},
+			"want": {
+				"error": ["invalid_private_key"],
+				"requests": 0,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-params-refused-not-sent",
+			"rules": ["SETTLE-59", "SETTLE-13"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "WIN",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "status",
+				"requests": 0,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-ill-formed-bet-not-sent",
+			"rules": ["SETTLE-11", "SETTLE-59"],
+			"needs": ["ill-formed-string"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": {
+						"$illFormed": "b-"
+					},
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet",
+				"requests": 0,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-amount-left-out",
+			"rules": ["SETTLE-18"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "lose",
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"status": 200,
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount",
+				"requests": 0
+			},
+			"wantZeroValue": {
+				"ok": {},
+				"requests": 1,
+				"request": {
+					"url": "https://boostx.test/api/integration/settlement",
+					"method": "POST",
+					"contentType": "application/json",
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u-1",
+								"bet": "b-1"
+							},
+							"status": "lose",
+							"payout": {
+								"amount": 0,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						}
+					}
+				}
+			}
+		},
+		{
+			"name": "settle-client-network-error",
+			"rules": ["SETTLE-58"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"networkError": true
+				}
+			},
+			"want": {
+				"failure": "network",
+				"requests": 1,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-timeout-waiting-for-answer",
+			"rules": ["SETTLE-61", "SETTLE-58"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"timeoutMs": 100
+				},
+				"response": {
+					"body": "{\"result\":{\"ok\":true}}",
+					"delayMs": 3000
+				}
+			},
+			"want": {
+				"failure": "timeout",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-timeout-reading-body",
+			"rules": ["SETTLE-61"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"timeoutMs": 100
+				},
+				"response": {
+					"body": "{\"result\":{\"ok\":true}}",
+					"bodyDelayMs": 3000
+				}
+			},
+			"want": {
+				"failure": "timeout",
+				"requests": 1
+			},
+			"note": "The limit runs through reading the capped body."
+		},
+		{
+			"name": "settle-client-timeout-in-key-lookup",
+			"rules": ["SETTLE-61"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"timeoutMs": 100
+				},
+				"keyStore": {
+					"acme": {
+						"key": "partner",
+						"delayMs": 3000
+					}
+				}
+			},
+			"want": {
+				"failure": "timeout",
+				"requests": 0,
+				"keyStoreCalled": true
+			},
+			"note": "The limit starts before the key store lookup."
+		},
+		{
+			"name": "settle-client-timeout-spans-whole-attempt",
+			"rules": ["SETTLE-61"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"timeoutMs": 600
+				},
+				"keyStore": {
+					"acme": {
+						"key": "partner",
+						"delayMs": 400
+					}
+				},
+				"response": {
+					"body": "{\"result\":{\"ok\":true}}",
+					"delayMs": 400
+				}
+			},
+			"want": {
+				"failure": "timeout",
+				"requests": 1
+			},
+			"note": "Each wait is under the limit, their sum is not: one limit covers the whole attempt."
+		},
+		{
+			"name": "settle-client-timeout-zero-means-default",
+			"rules": ["SETTLE-61"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"timeoutMs": 0
+				},
+				"response": {
+					"body": "{\"result\":{\"ok\":true}}",
+					"delayMs": 300
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"keyStoreCalled": true
+			},
+			"note": "0 means the 30 s default, not an immediate expiry."
+		},
+		{
+			"name": "settle-client-timeout-null-means-default",
+			"rules": ["SETTLE-61"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"timeoutMs": null
+				},
+				"response": {
+					"body": "{\"result\":{\"ok\":true}}",
+					"delayMs": 300
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-timeout-left-out-means-default",
+			"rules": ["SETTLE-61"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"response": {
+					"body": "{\"result\":{\"ok\":true}}",
+					"delayMs": 300
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-timeout-negative",
+			"rules": ["SETTLE-61"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"timeoutMs": -1
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			}
+		},
+		{
+			"name": "settle-client-timeout-nan",
+			"rules": ["SETTLE-61"],
+			"needs": ["non-finite"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"timeoutMs": {
+						"$number": "NaN"
+					}
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			}
+		},
+		{
+			"name": "settle-client-timeout-infinity",
+			"rules": ["SETTLE-61"],
+			"needs": ["non-finite"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"options": {
+					"timeoutMs": {
+						"$number": "Infinity"
+					}
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"at": "construct"
+			}
+		},
+		{
+			"name": "settle-client-cancelled-before-call",
+			"rules": ["SETTLE-62"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"cancel": "before",
+				"response": {
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"failure": "cancelled",
+				"requests": 0,
+				"keyStoreCalled": false
+			}
+		},
+		{
+			"name": "settle-client-cancelled-before-call-unknown-partner",
+			"rules": ["SETTLE-62", "SETTLE-59"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"cancel": "before",
+				"keyStore": {
+					"other": "partner"
+				}
+			},
+			"want": {
+				"failure": "cancelled",
+				"requests": 0,
+				"keyStoreCalled": false
+			},
+			"note": "An already cancelled handle fails before the key store is consulted."
+		},
+		{
+			"name": "settle-client-cancelled-in-key-lookup",
+			"rules": ["SETTLE-62", "SETTLE-61"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"cancel": {
+					"afterMs": 100
+				},
+				"keyStore": {
+					"acme": {
+						"key": "partner",
+						"delayMs": 3000
+					}
+				}
+			},
+			"want": {
+				"failure": "cancelled",
+				"requests": 0,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-cancelled-waiting-for-answer",
+			"rules": ["SETTLE-62"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"cancel": {
+					"afterMs": 100
+				},
+				"response": {
+					"body": "{\"result\":{\"ok\":true}}",
+					"delayMs": 3000
+				}
+			},
+			"want": {
+				"failure": "cancelled",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-cancelled-reading-body",
+			"rules": ["SETTLE-62"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"cancel": {
+					"afterMs": 100
+				},
+				"response": {
+					"body": "{\"result\":{\"ok\":true}}",
+					"bodyDelayMs": 3000
+				}
+			},
+			"want": {
+				"failure": "cancelled",
+				"requests": 1
+			}
+		},
+		{
+			"name": "settle-client-null-cancel-handle",
+			"rules": ["SETTLE-69"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"cancel": null,
+				"response": {
+					"body": "{\"result\":{\"ok\":true}}"
+				}
+			},
+			"want": {
+				"ok": {},
+				"requests": 1,
+				"keyStoreCalled": true
+			},
+			"note": "cancel null: the handle itself is null (JS {signal: null}, Go a nil context), which means no cancellation."
+		}
+	]
+}

@@ -1,0 +1,6849 @@
+{
+	"group": "keys",
+	"cases": [
+		{
+			"name": "keys-private-pkcs8-accepted",
+			"rules": ["KEYS-01", "KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.pkcs8"
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			},
+			"note": "The PrivateKeyInfo's ECPrivateKey carries the [1] public key, equal to the point the scalar derives."
+		},
+		{
+			"name": "keys-private-sec1-accepted",
+			"rules": ["KEYS-01", "KEYS-05", "KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.sec1"
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			},
+			"note": "The [1] public key equals the point the scalar derives."
+		},
+		{
+			"name": "keys-private-sec1-escaped-newlines",
+			"rules": ["KEYS-01", "KEYS-06"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.sec1",
+				"replace": [["\n", "\\n"]]
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			}
+		},
+		{
+			"name": "keys-private-escaped-crlf",
+			"rules": ["KEYS-06", "KEYS-08"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.pkcs8",
+				"replace": [["\n", "\\r\\n"]]
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			}
+		},
+		{
+			"name": "keys-private-escaped-cr-alone-refused",
+			"rules": ["KEYS-08"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.pkcs8",
+				"replace": [["\n", "\\r"]]
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "Only a literal \\n and a literal \\r\\n become line breaks; a literal \\r leaves a backslash in the body."
+		},
+		{
+			"name": "keys-private-escaped-tab-refused",
+			"rules": ["KEYS-08"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.pkcs8",
+				"replace": [["\n", "\\t\n"]]
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-private-crlf-line-ends",
+			"rules": ["KEYS-08", "KEYS-11"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.pkcs8",
+				"replace": [["\n", "\r\n"]]
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			}
+		},
+		{
+			"name": "keys-private-cr-line-ends",
+			"rules": ["KEYS-08"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.pkcs8",
+				"replace": [["\n", "\r"]]
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			}
+		},
+		{
+			"name": "keys-private-bom-bytes",
+			"rules": ["KEYS-07"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemHex": "efbbbf2d2d2d2d2d424547494e2050524956415445204b45592d2d2d2d2d0a4d494748416745414d424d4742797147534d34394167454743437147534d343941774548424730776177494241515167704b6c657747662b4f617973505153460a2b3138734c6932366f5446324373517276742f7a435662454b44326852414e434141536f5a5169336c563750654338454859365a4c2b346b68344c69365843420a74636f664c4441667968305478665461746a6858726c704f654d7230484c625467725151436850564b37383553534c496b47546e44496d310a2d2d2d2d2d454e442050524956415445204b45592d2d2d2d2d0a"
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			}
+		},
+		{
+			"name": "keys-private-bom-text",
+			"rules": ["KEYS-07", "KEYS-08"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.pkcs8",
+				"replace": [["-----BEGIN", "﻿-----BEGIN"]]
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			}
+		},
+		{
+			"name": "keys-private-inline-prefix",
+			"rules": ["KEYS-08"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.pkcs8",
+				"replace": [["-----BEGIN", "PARTNER_PRIVATE_KEY=-----BEGIN"]]
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			}
+		},
+		{
+			"name": "keys-private-attribute-lines-before-block",
+			"rules": ["KEYS-08"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.pkcs8",
+				"replace": [["-----BEGIN", "Bag Attributes\n    localKeyID: 01 00 00 00\nsubject=/CN=acme\n-----BEGIN"]]
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			},
+			"note": "Text before the BEGIN marker is ignored, colons included."
+		},
+		{
+			"name": "keys-private-indented",
+			"rules": ["KEYS-08"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.pkcs8",
+				"replace": [
+					["\n", "\n    "],
+					["-----BEGIN", "    -----BEGIN"]
+				]
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			}
+		},
+		{
+			"name": "keys-private-one-line",
+			"rules": ["KEYS-08"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.pkcs8",
+				"replace": [["\n", ""]]
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			}
+		},
+		{
+			"name": "keys-private-trailing-text",
+			"rules": ["KEYS-08"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1\n-----END PRIVATE KEY-----\nanything after the block: 42\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			},
+			"note": "The body runs to the first END line of the same label; text after it, a stray END line included, is ignored."
+		},
+		{
+			"name": "keys-private-body-space-tab",
+			"rules": ["KEYS-08", "KEYS-11"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.pkcs8",
+				"replace": [
+					["\n", " \t\n"],
+					["MIGHAgEA", "MIGH AgEA"]
+				]
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			}
+		},
+		{
+			"name": "keys-private-body-vt-ff",
+			"rules": ["KEYS-08"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.pkcs8",
+				"replace": [["\n", "\u000b\f\n"]]
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			},
+			"note": "Vertical tab and form feed are RFC 7468 whitespace."
+		},
+		{
+			"name": "keys-private-body-nbsp-refused",
+			"rules": ["KEYS-08"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.pkcs8",
+				"replace": [["\n", " \n"]]
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "Only RFC 7468 whitespace is removed from the body: a no-break space stays and is not base64."
+		},
+		{
+			"name": "keys-private-body-inner-bom-refused",
+			"rules": ["KEYS-08"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.pkcs8",
+				"replace": [["MIGHAgEA", "MIGH﻿AgEA"]]
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "U+FEFF is ignored before the BEGIN marker but is not whitespace inside the body."
+		},
+		{
+			"name": "keys-private-body-unpadded-refused",
+			"rules": ["KEYS-08", "KEYS-11"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.sec1",
+				"replace": [["==\n-----END", "\n-----END"]]
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-private-body-url-alphabet-refused",
+			"rules": ["KEYS-08", "KEYS-11"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.pkcs8",
+				"replace": [
+					["+", "-"],
+					["/", "_"]
+				]
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The PEM body is standard base64, not base64url."
+		},
+		{
+			"name": "keys-private-header-line-refused",
+			"rules": ["KEYS-09"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.pkcs8",
+				"replace": [["KEY-----\nMIGH", "KEY-----\nComment: acme signing key\n\nMIGH"]]
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-private-proc-type-header-refused",
+			"rules": ["KEYS-09", "KEYS-10"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.sec1",
+				"replace": [
+					[
+						"KEY-----\nMHcC",
+						"KEY-----\nProc-Type: 4,ENCRYPTED\nDEK-Info: AES-128-CBC,00112233445566778899AABBCCDDEEFF\n\nMHcC"
+					]
+				]
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The body is the plaintext key: header lines alone make the block unsupported."
+		},
+		{
+			"name": "keys-private-encrypted-label-refused",
+			"rules": ["KEYS-04", "KEYS-10"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN ENCRYPTED PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1\n-----END ENCRYPTED PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "A plaintext PKCS#8 body under the ENCRYPTED PRIVATE KEY label: the label is not one the loader reads."
+		},
+		{
+			"name": "keys-private-label-ecdsa-refused",
+			"rules": ["KEYS-04"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN ECDSA PRIVATE KEY-----\nMHcCAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oAoGCCqGSM49\nAwEHoUQDQgAEqGUIt5Vez3gvBB2OmS/uJIeC4ulwgbXKHywwH8odE8X02rY4V65a\nTnjK9By204K0EAoT1Su/OUkiyJBk5wyJtQ==\n-----END ECDSA PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-private-label-lowercase-refused",
+			"rules": ["KEYS-04"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN private key-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1\n-----END private key-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-private-label-certificate-refused",
+			"rules": ["KEYS-04"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN CERTIFICATE-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1\n-----END CERTIFICATE-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-private-pkcs8-body-labelled-sec1-refused",
+			"rules": ["KEYS-05"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-private-sec1-body-labelled-pkcs8-refused",
+			"rules": ["KEYS-05"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMHcCAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oAoGCCqGSM49\nAwEHoUQDQgAEqGUIt5Vez3gvBB2OmS/uJIeC4ulwgbXKHywwH8odE8X02rY4V65a\nTnjK9By204K0EAoT1Su/OUkiyJBk5wyJtQ==\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-private-wanted-block-second",
+			"rules": ["KEYS-04", "KEYS-08"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAER3io7NwY2abFxkOCAtFHUkQaMcqJ\nREbddxN2BVYilSxRwa6dwvkSt12NzEXQ861Gq/rRvjKQyly9vpzMiOOPRQ==\n-----END PUBLIC KEY-----\n-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			}
+		},
+		{
+			"name": "keys-private-certificate-block-skipped",
+			"rules": ["KEYS-04"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN CERTIFICATE-----\nMIIBAA==\n-----END CERTIFICATE-----\n-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			}
+		},
+		{
+			"name": "keys-private-earliest-block-wins",
+			"rules": ["KEYS-04", "KEYS-08"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgrRX77wTVPR8cOihY\n4yNeLd6sJBEX1edxT5+ytaN3V7ehRANCAASEEdew/gt5C/0M7Zuq86rv1VHlE3L4\n377RMALghduIulDZR+hWMRPqhVKYI6oxqCm8TYGKgdaxr1JWFfmTi7DA\n-----END PRIVATE KEY-----\n-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"ok": {
+					"matches": "partner2"
+				}
+			}
+		},
+		{
+			"name": "keys-private-earliest-label-sec1-first",
+			"rules": ["KEYS-04"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIK0V++8E1T0fHDooWOMjXi3erCQRF9XncU+fsrWjd1e3oAoGCCqGSM49\nAwEHoUQDQgAEhBHXsP4LeQv9DO2bqvOq79VR5RNy+N++0TAC4IXbiLpQ2UfoVjET\n6oVSmCOqMagpvE2BioHWsa9SVhX5k4uwwA==\n-----END EC PRIVATE KEY-----\n-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"ok": {
+					"matches": "partner2"
+				}
+			}
+		},
+		{
+			"name": "keys-private-earliest-label-pkcs8-first",
+			"rules": ["KEYS-04"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1\n-----END PRIVATE KEY-----\n-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIK0V++8E1T0fHDooWOMjXi3erCQRF9XncU+fsrWjd1e3oAoGCCqGSM49\nAwEHoUQDQgAEhBHXsP4LeQv9DO2bqvOq79VR5RNy+N++0TAC4IXbiLpQ2UfoVjET\n6oVSmCOqMagpvE2BioHWsa9SVhX5k4uwwA==\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			}
+		},
+		{
+			"name": "keys-private-end-label-mismatch-refused",
+			"rules": ["KEYS-08"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.pkcs8",
+				"replace": [["END PRIVATE KEY", "END EC PRIVATE KEY"]]
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-private-no-end-line-refused",
+			"rules": ["KEYS-08"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.pkcs8",
+				"replace": [["-----END PRIVATE KEY-----\n", ""]]
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-private-empty-refused",
+			"rules": ["KEYS-04"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": ""
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-private-public-pem-refused",
+			"rules": ["KEYS-02", "KEYS-04"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "partner.spki"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-private-p384-pkcs8-refused",
+			"rules": ["KEYS-03"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "p384.pkcs8"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-private-p384-sec1-refused",
+			"rules": ["KEYS-03", "KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pemRef": "p384.sec1"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-private-secp256k1-pkcs8-refused",
+			"rules": ["KEYS-03"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMD4CAQAwEAYHKoZIzj0CAQYFK4EEAAoEJzAlAgEBBCCkqV7AZ/45rKw9BIX7Xywu\nLbqhMXYKxCu+3/MJVsQoPQ==\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-private-ed25519-refused",
+			"rules": ["KEYS-03"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMC4CAQAwBQYDK2VwBCIEIAcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcH\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-private-sec1-without-parameters-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMGsCAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oUQDQgAEqGUI\nt5Vez3gvBB2OmS/uJIeC4ulwgbXKHywwH8odE8X02rY4V65aTnjK9By204K0EAoT\n1Su/OUkiyJBk5wyJtQ==\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-private-sec1-without-public-key-accepted",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMDECAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oAoGCCqGSM49\nAwEH\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			}
+		},
+		{
+			"name": "keys-private-pkcs8-without-public-key-accepted",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMEECAQAwEwYHKoZIzj0CAQYIKoZIzj0DAQcEJzAlAgEBBCCkqV7AZ/45rKw9BIX7\nXywuLbqhMXYKxCu+3/MJVsQoPQ==\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			},
+			"note": "partner's scalar in a PrivateKeyInfo whose ECPrivateKey has no [1] field."
+		},
+		{
+			"name": "keys-private-sec1-public-key-mismatch-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oAoGCCqGSM49\nAwEHoUQDQgAER3io7NwY2abFxkOCAtFHUkQaMcqJREbddxN2BVYilSxRwa6dwvkS\nt12NzEXQ861Gq/rRvjKQyly9vpzMiOOPRQ==\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "partner's scalar with other's public point in [1]: the two halves disagree."
+		},
+		{
+			"name": "keys-private-pkcs8-public-key-mismatch-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAARHeKjs3BjZpsXGQ4IC0UdSRBoxyolE\nRt13E3YFViKVLFHBrp3C+RK3XY3MRdDzrUar+tG+MpDKXL2+nMyI449F\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "partner's scalar with other's public point in the [1] field of the ECPrivateKey inside the PrivateKeyInfo."
+		},
+		{
+			"name": "keys-private-sec1-public-key-compressed-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMFcCAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oAoGCCqGSM49\nAwEHoSQDIgADqGUIt5Vez3gvBB2OmS/uJIeC4ulwgbXKHywwH8odE8U=\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [1] field holds the scalar's own point in compressed form; only the uncompressed form is accepted."
+		},
+		{
+			"name": "keys-private-pkcs8-public-key-compressed-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMGcCAQAwEwYHKoZIzj0CAQYIKoZIzj0DAQcETTBLAgEBBCCkqV7AZ/45rKw9BIX7\nXywuLbqhMXYKxCu+3/MJVsQoPaEkAyIAA6hlCLeVXs94LwQdjpkv7iSHguLpcIG1\nyh8sMB/KHRPF\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [1] field inside the PrivateKeyInfo holds the scalar's own point in compressed form."
+		},
+		{
+			"name": "keys-private-sec1-public-key-off-curve-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oAoGCCqGSM49\nAwEHoUQDQgAEqGUIt5Vez3gvBB2OmS/uJIeC4ulwgbXKHywwH8odE8X02rY4V65a\nTnjK9By204K0EAoT1Su/OUkiyJBk5wyJtA==\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [1] field holds 0x04 || X || Y' with X the scalar's own and Y' off the curve."
+		},
+		{
+			"name": "keys-private-pkcs8-public-key-infinity-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMEcCAQAwEwYHKoZIzj0CAQYIKoZIzj0DAQcELTArAgEBBCCkqV7AZ/45rKw9BIX7\nXywuLbqhMXYKxCu+3/MJVsQoPaEEAwIAAA==\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [1] field inside the PrivateKeyInfo holds the single octet 0x00, the encoding of the point at infinity."
+		},
+		{
+			"name": "keys-private-sec1-other-curve-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMC4CAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oAcGBSuBBAAK\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "partner's P-256 scalar with [0] naming secp256k1."
+		},
+		{
+			"name": "keys-private-sec1-scalar-only-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMCUCAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-private-sec1-public-key-hybrid-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oAoGCCqGSM49\nAwEHoUQDQgAHqGUIt5Vez3gvBB2OmS/uJIeC4ulwgbXKHywwH8odE8X02rY4V65a\nTnjK9By204K0EAoT1Su/OUkiyJBk5wyJtQ==\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [1] field holds the scalar's own point in hybrid form (0x06 or 0x07)."
+		},
+		{
+			"name": "keys-private-pkcs8-public-key-hybrid-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAAeoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [1] field of the ECPrivateKey inside the PrivateKeyInfo holds the scalar's own point in hybrid form (0x06 or 0x07)."
+		},
+		{
+			"name": "keys-private-sec1-public-key-no-prefix-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMHYCAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oAoGCCqGSM49\nAwEHoUMDQQCoZQi3lV7PeC8EHY6ZL+4kh4Li6XCBtcofLDAfyh0TxfTatjhXrlpO\neMr0HLbTgrQQChPVK785SSLIkGTnDIm1\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [1] field holds the scalar's own X || Y, 64 octets without the 0x04 prefix."
+		},
+		{
+			"name": "keys-private-pkcs8-public-key-no-prefix-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGGAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBGwwagIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hQwNBAKhlCLeVXs94LwQdjpkv7iSHguLpcIG1\nyh8sMB/KHRPF9Nq2OFeuWk54yvQcttOCtBAKE9UrvzlJIsiQZOcMibU=\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [1] field of the ECPrivateKey inside the PrivateKeyInfo holds the scalar's own X || Y, 64 octets without the 0x04 prefix."
+		},
+		{
+			"name": "keys-private-sec1-public-key-66-octets-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMHgCAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oAoGCCqGSM49\nAwEHoUUDQwAEqGUIt5Vez3gvBB2OmS/uJIeC4ulwgbXKHywwH8odE8X02rY4V65a\nTnjK9By204K0EAoT1Su/OUkiyJBk5wyJtQA=\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [1] field holds the scalar's own uncompressed point followed by one more octet."
+		},
+		{
+			"name": "keys-private-pkcs8-public-key-66-octets-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGIAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG4wbAIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRQNDAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1AA==\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [1] field of the ECPrivateKey inside the PrivateKeyInfo holds the scalar's own uncompressed point followed by one more octet."
+		},
+		{
+			"name": "keys-private-sec1-public-key-unused-bit-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oAoGCCqGSM49\nAwEHoUQDQgEEqGUIt5Vez3gvBB2OmS/uJIeC4ulwgbXKHywwH8odE8X02rY4V65a\nTnjK9By204K0EAoT1Su/OUkiyJBk5wyJtA==\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [1] field holds the scalar's own uncompressed point in a BIT STRING that declares one unused bit."
+		},
+		{
+			"name": "keys-private-pkcs8-public-key-unused-bit-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAQSoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm0\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [1] field of the ECPrivateKey inside the PrivateKeyInfo holds the scalar's own uncompressed point in a BIT STRING that declares one unused bit."
+		},
+		{
+			"name": "keys-private-sec1-public-key-empty-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMDYCAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oAoGCCqGSM49\nAwEHoQMDAQA=\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [1] field holds an empty BIT STRING."
+		},
+		{
+			"name": "keys-private-pkcs8-public-key-empty-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMEYCAQAwEwYHKoZIzj0CAQYIKoZIzj0DAQcELDAqAgEBBCCkqV7AZ/45rKw9BIX7\nXywuLbqhMXYKxCu+3/MJVsQoPaEDAwEA\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [1] field of the ECPrivateKey inside the PrivateKeyInfo holds an empty BIT STRING."
+		},
+		{
+			"name": "keys-private-sec1-public-key-octet-string-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMHYCAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oAoGCCqGSM49\nAwEHoUMEQQRHeKjs3BjZpsXGQ4IC0UdSRBoxyolERt13E3YFViKVLFHBrp3C+RK3\nXY3MRdDzrUar+tG+MpDKXL2+nMyI449F\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [1] field holds other's uncompressed point in an OCTET STRING instead of a BIT STRING."
+		},
+		{
+			"name": "keys-private-pkcs8-public-key-octet-string-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGGAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBGwwagIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hQwRBBEd4qOzcGNmmxcZDggLRR1JEGjHKiURG\n3XcTdgVWIpUsUcGuncL5ErddjcxF0POtRqv60b4ykMpcvb6czIjjj0U=\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [1] field of the ECPrivateKey inside the PrivateKeyInfo holds other's uncompressed point in an OCTET STRING instead of a BIT STRING."
+		},
+		{
+			"name": "keys-private-sec1-public-key-constructed-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMHkCAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oAoGCCqGSM49\nAwEHoUYjRANCAARHeKjs3BjZpsXGQ4IC0UdSRBoxyolERt13E3YFViKVLFHBrp3C\n+RK3XY3MRdDzrUar+tG+MpDKXL2+nMyI449F\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [1] field holds other's uncompressed point in a constructed BIT STRING."
+		},
+		{
+			"name": "keys-private-pkcs8-public-key-constructed-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGJAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG8wbQIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRiNEA0IABEd4qOzcGNmmxcZDggLRR1JEGjHK\niURG3XcTdgVWIpUsUcGuncL5ErddjcxF0POtRqv60b4ykMpcvb6czIjjj0U=\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [1] field of the ECPrivateKey inside the PrivateKeyInfo holds other's uncompressed point in a constructed BIT STRING."
+		},
+		{
+			"name": "keys-private-sec1-public-key-implicit-tag-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMHUCAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oAoGCCqGSM49\nAwEHgUIABEd4qOzcGNmmxcZDggLRR1JEGjHKiURG3XcTdgVWIpUsUcGuncL5Erdd\njcxF0POtRqv60b4ykMpcvb6czIjjj0U=\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [1] field holds a primitive, implicitly tagged [1] holding other's point."
+		},
+		{
+			"name": "keys-private-pkcs8-public-key-implicit-tag-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGFAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBGswaQIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2BQgAER3io7NwY2abFxkOCAtFHUkQaMcqJREbd\ndxN2BVYilSxRwa6dwvkSt12NzEXQ861Gq/rRvjKQyly9vpzMiOOPRQ==\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [1] field of the ECPrivateKey inside the PrivateKeyInfo holds a primitive, implicitly tagged [1] holding other's point."
+		},
+		{
+			"name": "keys-private-sec1-trailing-octets-refused",
+			"rules": ["KEYS-05"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oAoGCCqGSM49\nAwEHoUQDQgAEqGUIt5Vez3gvBB2OmS/uJIeC4ulwgbXKHywwH8odE8X02rY4V65a\nTnjK9By204K0EAoT1Su/OUkiyJBk5wyJtQAA\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "partner.sec1 followed by two zero octets after the ECPrivateKey."
+		},
+		{
+			"name": "keys-private-pkcs8-trailing-octets-refused",
+			"rules": ["KEYS-05"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1AAA=\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "partner.pkcs8 followed by two zero octets after the PrivateKeyInfo."
+		},
+		{
+			"name": "keys-private-pkcs8-inner-trailing-octets-refused",
+			"rules": ["KEYS-05", "KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGJAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG8wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1AAA=\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The privateKey octet string holds the ECPrivateKey followed by two zero octets."
+		},
+		{
+			"name": "keys-private-sec1-non-minimal-length-refused",
+			"rules": ["KEYS-05"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMIF3AgEBBCCkqV7AZ/45rKw9BIX7XywuLbqhMXYKxCu+3/MJVsQoPaAKBggqhkjO\nPQMBB6FEA0IABKhlCLeVXs94LwQdjpkv7iSHguLpcIG1yh8sMB/KHRPF9Nq2OFeu\nWk54yvQcttOCtBAKE9UrvzlJIsiQZOcMibU=\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "partner.sec1 with the SEQUENCE's length in long form (0x81 0x77) where the short form fits: not DER."
+		},
+		{
+			"name": "keys-private-sec1-version-2-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMHcCAQIEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oAoGCCqGSM49\nAwEHoUQDQgAEqGUIt5Vez3gvBB2OmS/uJIeC4ulwgbXKHywwH8odE8X02rY4V65a\nTnjK9By204K0EAoT1Su/OUkiyJBk5wyJtQ==\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "An ECPrivateKey with version 2."
+		},
+		{
+			"name": "keys-private-sec1-version-not-minimal-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMHgCAgABBCCkqV7AZ/45rKw9BIX7XywuLbqhMXYKxCu+3/MJVsQoPaAKBggqhkjO\nPQMBB6FEA0IABKhlCLeVXs94LwQdjpkv7iSHguLpcIG1yh8sMB/KHRPF9Nq2OFeu\nWk54yvQcttOCtBAKE9UrvzlJIsiQZOcMibU=\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "partner.sec1 with its version 1 written in two octets, 02 02 00 01: a DER integer takes its fewest octets."
+		},
+		{
+			"name": "keys-private-sec1-parameters-twice-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMIGDAgEBBCCkqV7AZ/45rKw9BIX7XywuLbqhMXYKxCu+3/MJVsQoPaAKBggqhkjO\nPQMBB6AKBggqhkjOPQMBB6FEA0IABKhlCLeVXs94LwQdjpkv7iSHguLpcIG1yh8s\nMB/KHRPF9Nq2OFeuWk54yvQcttOCtBAKE9UrvzlJIsiQZOcMibU=\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [0] parameters appear twice."
+		},
+		{
+			"name": "keys-private-sec1-public-key-twice-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMIG9AgEBBCCkqV7AZ/45rKw9BIX7XywuLbqhMXYKxCu+3/MJVsQoPaAKBggqhkjO\nPQMBB6FEA0IABKhlCLeVXs94LwQdjpkv7iSHguLpcIG1yh8sMB/KHRPF9Nq2OFeu\nWk54yvQcttOCtBAKE9UrvzlJIsiQZOcMibWhRANCAARHeKjs3BjZpsXGQ4IC0UdS\nRBoxyolERt13E3YFViKVLFHBrp3C+RK3XY3MRdDzrUar+tG+MpDKXL2+nMyI449F\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "Two [1] fields: the scalar's own point, then other's."
+		},
+		{
+			"name": "keys-private-sec1-parameters-after-public-key-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oUQDQgAEqGUI\nt5Vez3gvBB2OmS/uJIeC4ulwgbXKHywwH8odE8X02rY4V65aTnjK9By204K0EAoT\n1Su/OUkiyJBk5wyJtaAKBggqhkjOPQMBBw==\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The [0] parameters come after the [1] public key."
+		},
+		{
+			"name": "keys-private-sec1-unknown-field-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMHsCAQEEIKSpXsBn/jmsrD0EhftfLC4tuqExdgrEK77f8wlWxCg9oAoGCCqGSM49\nAwEHoUQDQgAEqGUIt5Vez3gvBB2OmS/uJIeC4ulwgbXKHywwH8odE8X02rY4V65a\nTnjK9By204K0EAoT1Su/OUkiyJBk5wyJtaICBQA=\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "An unknown [2] field after the [1] public key."
+		},
+		{
+			"name": "keys-private-sec1-scalar-zero-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMDECAQEEIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoAoGCCqGSM49\nAwEH\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "A scalar of 32 zero octets, without a [1] field."
+		},
+		{
+			"name": "keys-private-sec1-scalar-order-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMDECAQEEIP////8AAAAA//////////+85vqtpxeehPO5ysL8YyVRoAoGCCqGSM49\nAwEH\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "A scalar equal to the order n of P-256, without a [1] field."
+		},
+		{
+			"name": "keys-private-sec1-scalar-leading-zeros-accepted",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMHkCAQEEIgAApKlewGf+OaysPQSF+18sLi26oTF2CsQrvt/zCVbEKD2gCgYIKoZI\nzj0DAQehRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCBtcofLDAfyh0TxfTatjhX\nrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			},
+			"note": "partner's scalar written with two extra leading zero octets, 34 in all."
+		},
+		{
+			"name": "keys-private-sec1-scalar-33-octets-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN EC PRIVATE KEY-----\nMDICAQEEIQGkqV7AZ/45rKw9BIX7XywuLbqhMXYKxCu+3/MJVsQoPaAKBggqhkjO\nPQMBBw==\n-----END EC PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "A scalar of 33 significant octets, 0x01 then partner's 32, without a [1] field."
+		},
+		{
+			"name": "keys-private-pkcs8-inner-parameters-accepted",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2gCgYIKoZIzj0DAQehRANCAASoZQi3lV7PeC8E\nHY6ZL+4kh4Li6XCBtcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLI\nkGTnDIm1\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			},
+			"note": "The ECPrivateKey inside the PrivateKeyInfo carries [0] namedCurve prime256v1, as well as the [1] public key."
+		},
+		{
+			"name": "keys-private-pkcs8-attributes-accepted",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGJAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1oAA=\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			},
+			"note": "partner.pkcs8 with an empty [0] attributes field after privateKey; attributes are not read."
+		},
+		{
+			"name": "keys-private-pkcs8-attributes-content-not-read",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGLAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1oAL//w==\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			},
+			"note": "partner.pkcs8 with a [0] attributes field holding the two octets FF FF, which are no DER element: only the field's own tag and length are read."
+		},
+		{
+			"name": "keys-private-pkcs8-attributes-primitive-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGJAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1gAA=\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "partner.pkcs8 followed by an empty primitive [0], 80 00, after privateKey: only a constructed [0] (A0) is the attributes."
+		},
+		{
+			"name": "keys-private-pkcs8-version-1-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGHAgEBMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "A version 1 OneAsymmetricKey without its [1] publicKey."
+		},
+		{
+			"name": "keys-private-pkcs8-version-1-public-key-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIHLAgEBMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1gUIABKhl\nCLeVXs94LwQdjpkv7iSHguLpcIG1yh8sMB/KHRPF9Nq2OFeuWk54yvQcttOCtBAK\nE9UrvzlJIsiQZOcMibU=\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "A version 1 OneAsymmetricKey whose [1] publicKey is the scalar's own point."
+		},
+		{
+			"name": "keys-private-pkcs8-version-2-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGHAgECMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "A PrivateKeyInfo with version 2."
+		},
+		{
+			"name": "keys-private-pkcs8-version-not-minimal-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGIAgIAADATBgcqhkjOPQIBBggqhkjOPQMBBwRtMGsCAQEEIKSpXsBn/jmsrD0E\nhftfLC4tuqExdgrEK77f8wlWxCg9oUQDQgAEqGUIt5Vez3gvBB2OmS/uJIeC4ulw\ngbXKHywwH8odE8X02rY4V65aTnjK9By204K0EAoT1Su/OUkiyJBk5wyJtQ==\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "partner.pkcs8 with its version 0 written in two octets, 02 02 00 00: a DER integer takes its fewest octets."
+		},
+		{
+			"name": "keys-private-pkcs8-public-key-after-private-key-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIHLAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1gUIABKhl\nCLeVXs94LwQdjpkv7iSHguLpcIG1yh8sMB/KHRPF9Nq2OFeuWk54yvQcttOCtBAK\nE9UrvzlJIsiQZOcMibU=\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "A version 0 PrivateKeyInfo with a [1] publicKey after privateKey."
+		},
+		{
+			"name": "keys-private-pkcs8-stray-octet-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGIAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1BQ==\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "One stray octet inside the PrivateKeyInfo after privateKey."
+		},
+		{
+			"name": "keys-private-pkcs8-algorithm-without-curve-refused",
+			"rules": ["KEYS-05"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGJAgEAMAkGByqGSM49AgEEeTB3AgEBBCCkqV7AZ/45rKw9BIX7XywuLbqhMXYK\nxCu+3/MJVsQoPaAKBggqhkjOPQMBB6FEA0IABKhlCLeVXs94LwQdjpkv7iSHguLp\ncIG1yh8sMB/KHRPF9Nq2OFeuWk54yvQcttOCtBAKE9UrvzlJIsiQZOcMibU=\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The AlgorithmIdentifier has no parameters; the inner ECPrivateKey names P-256."
+		},
+		{
+			"name": "keys-private-pkcs8-algorithm-null-parameters-refused",
+			"rules": ["KEYS-05"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGLAgEAMAsGByqGSM49AgEFAAR5MHcCAQEEIKSpXsBn/jmsrD0EhftfLC4tuqEx\ndgrEK77f8wlWxCg9oAoGCCqGSM49AwEHoUQDQgAEqGUIt5Vez3gvBB2OmS/uJIeC\n4ulwgbXKHywwH8odE8X02rY4V65aTnjK9By204K0EAoT1Su/OUkiyJBk5wyJtQ==\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The AlgorithmIdentifier has NULL parameters; the inner ECPrivateKey names P-256."
+		},
+		{
+			"name": "keys-private-pkcs8-inner-version-2-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAgQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The ECPrivateKey inside the PrivateKeyInfo has version 2."
+		},
+		{
+			"name": "keys-private-pkcs8-inner-p384-parameters-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGQAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHYwdAIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2gBwYFK4EEACKhRANCAASoZQi3lV7PeC8EHY6Z\nL+4kh4Li6XCBtcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTn\nDIm1\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The ECPrivateKey inside a P-256 PrivateKeyInfo names P-384 in its [0] parameters."
+		},
+		{
+			"name": "keys-private-pkcs8-inner-explicit-parameters-refused",
+			"rules": ["KEYS-13"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGOAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHQwcgIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2gBTADAgEBoUQDQgAEqGUIt5Vez3gvBB2OmS/u\nJIeC4ulwgbXKHywwH8odE8X02rY4V65aTnjK9By204K0EAoT1Su/OUkiyJBk5wyJ\ntQ==\n-----END PRIVATE KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "The ECPrivateKey inside the PrivateKeyInfo carries explicit parameters, not a named curve."
+		},
+		{
+			"name": "keys-private-null-refused",
+			"rules": ["KEYS-14"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": null
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-private-number-refused",
+			"rules": ["KEYS-14"],
+			"needs": ["untyped-string"],
+			"op": "key.loadPrivate",
+			"input": {
+				"pem": 42
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "A loader that takes only bytes cannot be given a number and skips this case."
+		},
+		{
+			"name": "keys-public-spki-accepted",
+			"rules": ["KEYS-02"],
+			"op": "key.loadPublic",
+			"input": {
+				"pemRef": "partner.spki"
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			}
+		},
+		{
+			"name": "keys-public-compressed-point",
+			"rules": ["KEYS-12"],
+			"op": "key.loadPublic",
+			"input": {
+				"pemRef": "partner.spkiCompressed"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-public-escaped-newlines",
+			"rules": ["KEYS-06", "KEYS-08"],
+			"op": "key.loadPublic",
+			"input": {
+				"pemRef": "partner.spki",
+				"replace": [["\n", "\\n"]]
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			}
+		},
+		{
+			"name": "keys-public-bom-bytes",
+			"rules": ["KEYS-07"],
+			"op": "key.loadPublic",
+			"input": {
+				"pemHex": "efbbbf2d2d2d2d2d424547494e205055424c4943204b45592d2d2d2d2d0a4d466b77457759484b6f5a497a6a3043415159494b6f5a497a6a3044415163445167414571475549743556657a3367764242324f6d532f754a49654334756c770a6762584b4879777748386f64453858303272593456363561546e6a4b3942793230344b3045416f543153752f4f556b69794a426b3577794a74513d3d0a2d2d2d2d2d454e44205055424c4943204b45592d2d2d2d2d0a"
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			}
+		},
+		{
+			"name": "keys-public-prefix-and-trailing-text",
+			"rules": ["KEYS-08"],
+			"op": "key.loadPublic",
+			"input": {
+				"pemRef": "partner.spki",
+				"replace": [
+					["-----BEGIN", "key: -----BEGIN"],
+					["END PUBLIC KEY-----\n", "END PUBLIC KEY----- (acme)\n"]
+				]
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			}
+		},
+		{
+			"name": "keys-public-one-line",
+			"rules": ["KEYS-08"],
+			"op": "key.loadPublic",
+			"input": {
+				"pemRef": "partner.spki",
+				"replace": [["\n", ""]]
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			}
+		},
+		{
+			"name": "keys-public-body-nbsp-refused",
+			"rules": ["KEYS-08"],
+			"op": "key.loadPublic",
+			"input": {
+				"pemRef": "partner.spki",
+				"replace": [["\n", " \n"]]
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-public-body-unpadded-refused",
+			"rules": ["KEYS-08", "KEYS-11"],
+			"op": "key.loadPublic",
+			"input": {
+				"pemRef": "partner.spki",
+				"replace": [["==\n-----END", "\n-----END"]]
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-public-header-line-refused",
+			"rules": ["KEYS-09"],
+			"op": "key.loadPublic",
+			"input": {
+				"pemRef": "partner.spki",
+				"replace": [["KEY-----\nMFkw", "KEY-----\nComment: acme\n\nMFkw"]]
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-public-wanted-block-second",
+			"rules": ["KEYS-04", "KEYS-08"],
+			"op": "key.loadPublic",
+			"input": {
+				"pem": "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgY46GK1zwe6D4Re+A\n36jzSPsYSnHkfDhyuacIUwLlvBOhRANCAARHeKjs3BjZpsXGQ4IC0UdSRBoxyolE\nRt13E3YFViKVLFHBrp3C+RK3XY3MRdDzrUar+tG+MpDKXL2+nMyI449F\n-----END PRIVATE KEY-----\n-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEqGUIt5Vez3gvBB2OmS/uJIeC4ulw\ngbXKHywwH8odE8X02rY4V65aTnjK9By204K0EAoT1Su/OUkiyJBk5wyJtQ==\n-----END PUBLIC KEY-----\n"
+			},
+			"want": {
+				"ok": {
+					"matches": "partner"
+				}
+			}
+		},
+		{
+			"name": "keys-public-earliest-block-wins",
+			"rules": ["KEYS-04"],
+			"op": "key.loadPublic",
+			"input": {
+				"pem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEhBHXsP4LeQv9DO2bqvOq79VR5RNy\n+N++0TAC4IXbiLpQ2UfoVjET6oVSmCOqMagpvE2BioHWsa9SVhX5k4uwwA==\n-----END PUBLIC KEY-----\n-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEqGUIt5Vez3gvBB2OmS/uJIeC4ulw\ngbXKHywwH8odE8X02rY4V65aTnjK9By204K0EAoT1Su/OUkiyJBk5wyJtQ==\n-----END PUBLIC KEY-----\n"
+			},
+			"want": {
+				"ok": {
+					"matches": "partner2"
+				}
+			}
+		},
+		{
+			"name": "keys-public-private-pem-refused",
+			"rules": ["KEYS-02", "KEYS-04"],
+			"op": "key.loadPublic",
+			"input": {
+				"pemRef": "partner.pkcs8"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-public-pkcs8-body-labelled-public-refused",
+			"rules": ["KEYS-02"],
+			"op": "key.loadPublic",
+			"input": {
+				"pem": "-----BEGIN PUBLIC KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgpKlewGf+OaysPQSF\n+18sLi26oTF2CsQrvt/zCVbEKD2hRANCAASoZQi3lV7PeC8EHY6ZL+4kh4Li6XCB\ntcofLDAfyh0TxfTatjhXrlpOeMr0HLbTgrQQChPVK785SSLIkGTnDIm1\n-----END PUBLIC KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-public-label-rsa-refused",
+			"rules": ["KEYS-04"],
+			"op": "key.loadPublic",
+			"input": {
+				"pem": "-----BEGIN RSA PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEqGUIt5Vez3gvBB2OmS/uJIeC4ulw\ngbXKHywwH8odE8X02rY4V65aTnjK9By204K0EAoT1Su/OUkiyJBk5wyJtQ==\n-----END RSA PUBLIC KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-public-label-lowercase-refused",
+			"rules": ["KEYS-04"],
+			"op": "key.loadPublic",
+			"input": {
+				"pem": "-----BEGIN public key-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEqGUIt5Vez3gvBB2OmS/uJIeC4ulw\ngbXKHywwH8odE8X02rY4V65aTnjK9By204K0EAoT1Su/OUkiyJBk5wyJtQ==\n-----END public key-----\n"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-public-p384-refused",
+			"rules": ["KEYS-03"],
+			"op": "key.loadPublic",
+			"input": {
+				"pemRef": "p384.spki"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-public-ed25519-refused",
+			"rules": ["KEYS-03"],
+			"op": "key.loadPublic",
+			"input": {
+				"pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlo=\n-----END PUBLIC KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-public-point-off-curve-refused",
+			"rules": ["KEYS-63", "KEYS-12"],
+			"op": "key.loadPublic",
+			"input": {
+				"pem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEqGUIt5Vez3gvBB2OmS/uJIeC4ulw\ngbXKHywwH8odE8X02rY4V65aTnjK9By204K0EAoT1Su/OUkiyJBk5wyJtA==\n-----END PUBLIC KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			},
+			"note": "partner's point with the lowest bit of Y flipped."
+		},
+		{
+			"name": "keys-public-coordinates-out-of-range-refused",
+			"rules": ["KEYS-63", "KEYS-12"],
+			"op": "key.loadPublic",
+			"input": {
+				"pem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE////////////////////////////\n/////////////////////////////////////////////////////////w==\n-----END PUBLIC KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-public-point-at-infinity-refused",
+			"rules": ["KEYS-63", "KEYS-12"],
+			"op": "key.loadPublic",
+			"input": {
+				"pem": "-----BEGIN PUBLIC KEY-----\nMBkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDAgAA\n-----END PUBLIC KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-public-hybrid-point-refused",
+			"rules": ["KEYS-12"],
+			"op": "key.loadPublic",
+			"input": {
+				"pem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAHqGUIt5Vez3gvBB2OmS/uJIeC4ulw\ngbXKHywwH8odE8X02rY4V65aTnjK9By204K0EAoT1Su/OUkiyJBk5wyJtQ==\n-----END PUBLIC KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			},
+			"note": "partner's point in the hybrid form (06/07 prefix): only the uncompressed form is accepted."
+		},
+		{
+			"name": "keys-public-unused-bits-declared-refused",
+			"rules": ["KEYS-12"],
+			"op": "key.loadPublic",
+			"input": {
+				"pem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgEEhBHXsP4LeQv9DO2bqvOq79VR5RNy\n+N++0TAC4IXbiLpQ2UfoVjET6oVSmCOqMagpvE2BioHWsa9SVhX5k4uwwA==\n-----END PUBLIC KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			},
+			"note": "partner2's point in a BIT STRING whose first content octet declares one unused bit. Y ends in 0xc0, so the bit it declares unused is already zero: the point stays on the curve, and only that octet is wrong."
+		},
+		{
+			"name": "keys-public-unused-bits-shifted-point-refused",
+			"rules": ["KEYS-12"],
+			"op": "key.loadPublic",
+			"input": {
+				"pem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgEJCCOvYfwW8hf6Gds3VedV36qjyibl\n8b99omAFwQu3EXShso/QrGIn1QqlMEdUY1BTeJsDFQOtY16krCvzJxdhgA==\n-----END PUBLIC KEY-----\n"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			},
+			"note": "partner2's uncompressed point shifted left by one bit, in a BIT STRING that declares one unused bit. A loader that honours the unused-bit count and shifts the value back recovers partner2's point exactly, and must still refuse the key."
+		},
+		{
+			"name": "keys-public-empty-refused",
+			"rules": ["KEYS-04"],
+			"op": "key.loadPublic",
+			"input": {
+				"pem": ""
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-public-null-refused",
+			"rules": ["KEYS-14"],
+			"op": "key.loadPublic",
+			"input": {
+				"pem": null
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-store-all-roles",
+			"rules": ["KEYS-56", "KEYS-57", "KEYS-58"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"partnerPublicKey": "partner",
+				"partnerPrivateKey": "partner",
+				"boostxPublicKey": "boostx",
+				"lookups": [
+					{
+						"method": "partnerPublicKeys",
+						"partner": "acme",
+						"want": {
+							"ok": {
+								"keys": ["partner"]
+							}
+						}
+					},
+					{
+						"method": "partnerPrivateKey",
+						"partner": "acme",
+						"want": {
+							"ok": {
+								"key": "partner"
+							}
+						}
+					},
+					{
+						"method": "boostxPublicKey",
+						"partner": "acme",
+						"want": {
+							"ok": {
+								"key": "boostx"
+							}
+						}
+					}
+				]
+			},
+			"want": {
+				"ok": {}
+			},
+			"note": "A single partner public key reads back as a list of one."
+		},
+		{
+			"name": "keys-store-public-key-list",
+			"rules": ["KEYS-56", "KEYS-57"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"partnerPublicKey": ["partner", "partner2"],
+				"partnerPrivateKey": "partner",
+				"boostxPublicKey": "boostx",
+				"lookups": [
+					{
+						"method": "partnerPublicKeys",
+						"partner": "acme",
+						"want": {
+							"ok": {
+								"keys": ["partner", "partner2"]
+							}
+						}
+					}
+				]
+			},
+			"want": {
+				"ok": {}
+			}
+		},
+		{
+			"name": "keys-store-empty-public-key-list",
+			"rules": ["KEYS-57", "HTTP-58"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"partnerPublicKey": [],
+				"partnerPrivateKey": "partner",
+				"boostxPublicKey": "boostx"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-store-role-left-out",
+			"rules": ["KEYS-58", "HTTP-58"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"partnerPublicKey": "partner",
+				"boostxPublicKey": "boostx",
+				"lookups": [
+					{
+						"method": "partnerPrivateKey",
+						"partner": "acme",
+						"want": {
+							"error": ["invalid_private_key"]
+						}
+					},
+					{
+						"method": "boostxPublicKey",
+						"partner": "acme",
+						"want": {
+							"ok": {
+								"key": "boostx"
+							}
+						}
+					},
+					{
+						"method": "partnerPublicKeys",
+						"partner": "zeta",
+						"want": {
+							"error": ["unknown_partner"]
+						}
+					}
+				]
+			},
+			"want": {
+				"ok": {}
+			},
+			"note": "partnerPrivateKey is not supplied: registration succeeds and that role's lookup fails."
+		},
+		{
+			"name": "keys-store-null-roles-are-absent",
+			"rules": ["KEYS-57", "KEYS-58", "HTTP-58"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"partnerPublicKey": null,
+				"partnerPrivateKey": null,
+				"boostxPublicKey": null,
+				"lookups": [
+					{
+						"method": "partnerPublicKeys",
+						"partner": "acme",
+						"want": {
+							"error": ["invalid_public_key"]
+						}
+					},
+					{
+						"method": "partnerPrivateKey",
+						"partner": "acme",
+						"want": {
+							"error": ["invalid_private_key"]
+						}
+					},
+					{
+						"method": "boostxPublicKey",
+						"partner": "acme",
+						"want": {
+							"error": ["invalid_public_key"]
+						}
+					}
+				]
+			},
+			"want": {
+				"ok": {}
+			},
+			"note": "null means the role is left out: registration succeeds and each lookup fails with its role error."
+		},
+		{
+			"name": "keys-store-no-roles",
+			"rules": ["KEYS-56", "KEYS-58"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"lookups": [
+					{
+						"method": "partnerPublicKeys",
+						"partner": "acme",
+						"want": {
+							"error": ["invalid_public_key"]
+						}
+					},
+					{
+						"method": "partnerPrivateKey",
+						"partner": "acme",
+						"want": {
+							"error": ["invalid_private_key"]
+						}
+					},
+					{
+						"method": "boostxPublicKey",
+						"partner": "acme",
+						"want": {
+							"error": ["invalid_public_key"]
+						}
+					},
+					{
+						"method": "boostxPublicKey",
+						"partner": "zeta",
+						"want": {
+							"error": ["unknown_partner"]
+						}
+					}
+				]
+			},
+			"want": {
+				"ok": {}
+			}
+		},
+		{
+			"name": "keys-store-unusable-partner-public-key",
+			"rules": ["KEYS-57", "KEYS-63"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"partnerPublicKey": "@unusable",
+				"partnerPrivateKey": "partner",
+				"boostxPublicKey": "boostx"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-store-unusable-key-in-list",
+			"rules": ["KEYS-57"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"partnerPublicKey": ["partner", "@unusable"],
+				"partnerPrivateKey": "partner",
+				"boostxPublicKey": "boostx"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			},
+			"note": "Registration refuses every unusable key, even next to a usable one; only a parser skips them."
+		},
+		{
+			"name": "keys-store-null-in-list",
+			"rules": ["KEYS-57"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"partnerPublicKey": ["partner", null],
+				"partnerPrivateKey": "partner",
+				"boostxPublicKey": "boostx"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-store-unusable-boostx-key",
+			"rules": ["KEYS-57", "KEYS-63"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"partnerPublicKey": "partner",
+				"partnerPrivateKey": "partner",
+				"boostxPublicKey": "@unusable"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-store-unusable-private-key",
+			"rules": ["KEYS-57", "KEYS-63"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"partnerPublicKey": "partner",
+				"partnerPrivateKey": "@unusable",
+				"boostxPublicKey": "boostx"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-store-empty-partner",
+			"rules": ["KEYS-56", "HTTP-58"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "",
+				"partnerPublicKey": "partner",
+				"partnerPrivateKey": "partner",
+				"boostxPublicKey": "boostx"
+			},
+			"want": {
+				"error": ["missing_claim"]
+			}
+		},
+		{
+			"name": "keys-store-null-partner",
+			"rules": ["KEYS-56"],
+			"op": "keystore.register",
+			"input": {
+				"partner": null,
+				"partnerPublicKey": "partner",
+				"partnerPrivateKey": "partner",
+				"boostxPublicKey": "boostx"
+			},
+			"want": {
+				"error": ["missing_claim"]
+			}
+		},
+		{
+			"name": "keys-store-empty-partner-before-keys",
+			"rules": ["KEYS-56", "KEYS-57"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "",
+				"partnerPublicKey": [],
+				"partnerPrivateKey": "@unusable",
+				"boostxPublicKey": "boostx"
+			},
+			"want": {
+				"error": ["missing_claim"]
+			},
+			"note": "The partner id is checked before any key."
+		},
+		{
+			"name": "keys-store-public-keys-before-private-key",
+			"rules": ["KEYS-57"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"partnerPublicKey": "@unusable",
+				"partnerPrivateKey": "@unusable",
+				"boostxPublicKey": "boostx"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			},
+			"note": "Roles are checked in parameter order: the partner public keys before the partner private key."
+		},
+		{
+			"name": "keys-store-private-key-before-boostx-key",
+			"rules": ["KEYS-57"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"partnerPublicKey": "partner",
+				"partnerPrivateKey": "@unusable",
+				"boostxPublicKey": "@unusable"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			},
+			"note": "Roles are checked in parameter order: the partner private key before the BoostX public key."
+		},
+		{
+			"name": "keys-store-lookup-exact-id",
+			"rules": ["KEYS-58", "KEYS-48"],
+			"op": "keystore.register",
+			"input": {
+				"partner": "acme",
+				"partnerPublicKey": "partner",
+				"partnerPrivateKey": "partner",
+				"boostxPublicKey": "boostx",
+				"lookups": [
+					{
+						"method": "boostxPublicKey",
+						"partner": "ACME",
+						"want": {
+							"error": ["unknown_partner"]
+						}
+					},
+					{
+						"method": "boostxPublicKey",
+						"partner": "acme ",
+						"want": {
+							"error": ["unknown_partner"]
+						}
+					},
+					{
+						"method": "partnerPrivateKey",
+						"partner": "",
+						"want": {
+							"error": ["unknown_partner"]
+						}
+					},
+					{
+						"method": "boostxPublicKey",
+						"partner": "acme",
+						"want": {
+							"ok": {
+								"key": "boostx"
+							}
+						}
+					}
+				]
+			},
+			"want": {
+				"ok": {}
+			},
+			"note": "Ids match byte for byte: no case folding or trimming."
+		},
+		{
+			"name": "keys-build-gid-null-key-before-ids",
+			"rules": ["KEYS-19", "GID-34"],
+			"op": "gid.build",
+			"input": {
+				"key": null,
+				"partner": ""
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-build-gid-unusable-key",
+			"rules": ["KEYS-17", "KEYS-19"],
+			"op": "gid.build",
+			"input": {
+				"key": "@unusable",
+				"partner": "acme",
+				"user": "u-1",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-build-gid-ill-formed-id",
+			"rules": ["KEYS-37", "GID-04"],
+			"needs": ["ill-formed-string"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "u-1",
+				"bet": {
+					"$illFormed": "b-"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "keys-build-gamepass-unusable-key-before-params",
+			"rules": ["KEYS-19", "GAMEPASS-08"],
+			"op": "gamepass.create",
+			"input": {
+				"key": "@unusable",
+				"params": {}
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-build-settlement-null-key-before-params",
+			"rules": ["KEYS-19", "SETTLE-31"],
+			"op": "settlement.create",
+			"input": {
+				"key": null,
+				"params": {}
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-build-verifykeys-request-null-key",
+			"rules": ["KEYS-19"],
+			"op": "verifykeys.createRequest",
+			"input": {
+				"key": null,
+				"partnerID": "",
+				"nonce": 0
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-build-verifykeys-response-unusable-key",
+			"rules": ["KEYS-19"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"key": "@unusable",
+				"partnerID": "boostx",
+				"nonce": 0
+			},
+			"want": {
+				"error": ["invalid_private_key"]
+			}
+		},
+		{
+			"name": "keys-emit-gamepass-claims",
+			"rules": ["KEYS-20", "KEYS-25", "KEYS-38", "KEYS-42"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 10,
+					"currency": "USD",
+					"x": 1.5
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"iat": "${now}"
+					},
+					"absent": ["exp", "nbf", "jti"]
+				}
+			},
+			"note": "The implicit builder checks pin the header {\"alg\":\"ES256\",\"typ\":\"JWT\"} and canonical segments."
+		},
+		{
+			"name": "keys-emit-settlement-claims",
+			"rules": ["KEYS-20", "KEYS-25", "KEYS-38", "KEYS-42"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"iat": "${now}"
+					},
+					"absent": ["exp", "nbf", "jti"]
+				}
+			}
+		},
+		{
+			"name": "keys-emit-verifykeys-request-claims",
+			"rules": ["KEYS-20", "KEYS-38", "KEYS-42"],
+			"op": "verifykeys.createRequest",
+			"input": {
+				"partnerID": "acme",
+				"nonce": 7
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"verifyKeys": {
+							"nonce": 7
+						},
+						"iss": "boostx",
+						"aud": "acme",
+						"iat": "${now}"
+					},
+					"absent": ["exp", "nbf", "jti"]
+				}
+			}
+		},
+		{
+			"name": "keys-emit-verifykeys-response-claims",
+			"rules": ["KEYS-20", "KEYS-38", "KEYS-42"],
+			"op": "verifykeys.createResponse",
+			"input": {
+				"partnerID": "acme",
+				"nonce": 7
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"verifyKeys": {
+							"nonce": 7
+						},
+						"iss": "acme",
+						"aud": "boostx",
+						"iat": "${now}"
+					},
+					"absent": ["exp", "nbf", "jti"]
+				}
+			}
+		},
+		{
+			"name": "keys-jws-baseline-accepted",
+			"rules": ["KEYS-21", "KEYS-29", "KEYS-67"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"round": 2,
+					"iat": "${now-100}",
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false
+				}
+			}
+		},
+		{
+			"name": "keys-jws-two-segments",
+			"rules": ["KEYS-28"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"transform": [
+						{
+							"segments": 2
+						}
+					],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-jws-one-segment",
+			"rules": ["KEYS-28"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"transform": [
+						{
+							"segments": 1
+						}
+					],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-jws-four-segments",
+			"rules": ["KEYS-28"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"transform": [
+						{
+							"append": ".e30"
+						}
+					],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-jws-empty-token",
+			"rules": ["KEYS-28"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"raw": ""
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-jws-leading-space-not-trimmed",
+			"rules": ["KEYS-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"transform": [
+						{
+							"insert": " ",
+							"at": 0
+						}
+					],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			},
+			"note": "Tokens are used exactly as received: the space makes the header segment non-canonical."
+		},
+		{
+			"name": "keys-jws-trailing-newline-not-trimmed",
+			"rules": ["KEYS-26", "KEYS-31"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"transform": [
+						{
+							"append": "\n"
+						}
+					],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			},
+			"note": "The line feed lands in the signature segment, a signature failure."
+		},
+		{
+			"name": "keys-header-alg-only-accepted",
+			"rules": ["KEYS-23"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-header-typ-number-ignored",
+			"rules": ["KEYS-64"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"typ\":5}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-header-typ-null-ignored",
+			"rules": ["KEYS-64"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"typ\":null}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-header-typ-object-and-case-variant-ignored",
+			"rules": ["KEYS-64", "KEYS-22"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"typ\":{\"v\":\"JWT\"},\"TYP\":[1]}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-header-other-members-ignored",
+			"rules": ["KEYS-23"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"typ\":\"JWT\",\"kid\":7,\"x5u\":\"https://x.test/k\",\"jku\":null,\"b64\":false,\"zip\":\"DEF\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "b64 without crit has no effect: the payload is still the base64url segment."
+		},
+		{
+			"name": "keys-header-alg-absent",
+			"rules": ["KEYS-65", "KEYS-21"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"typ\":\"JWT\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-header-alg-null",
+			"rules": ["KEYS-65", "KEYS-21"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":null,\"typ\":\"JWT\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-header-alg-none",
+			"rules": ["KEYS-21"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"none\",\"typ\":\"JWT\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-header-alg-lowercase",
+			"rules": ["KEYS-21"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"es256\",\"typ\":\"JWT\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-header-alg-es384",
+			"rules": ["KEYS-21"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES384\",\"typ\":\"JWT\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-header-alg-trailing-space",
+			"rules": ["KEYS-21"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256 \",\"typ\":\"JWT\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-header-alg-number",
+			"rules": ["KEYS-65"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":256,\"typ\":\"JWT\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-header-alg-array",
+			"rules": ["KEYS-65"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":[\"ES256\"],\"typ\":\"JWT\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-header-alg-object",
+			"rules": ["KEYS-65"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":{\"alg\":\"ES256\"},\"typ\":\"JWT\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-header-alg-boolean",
+			"rules": ["KEYS-65"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":true,\"typ\":\"JWT\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-header-alg-escaped-value-accepted",
+			"rules": ["KEYS-22", "KEYS-21"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"\\u0045S256\",\"typ\":\"JWT\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "The value is compared after JSON unescaping."
+		},
+		{
+			"name": "keys-header-alg-escaped-name-accepted",
+			"rules": ["KEYS-22"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"\\u0061lg\":\"ES256\",\"typ\":\"JWT\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "Member names are compared after JSON unescaping."
+		},
+		{
+			"name": "keys-header-alg-name-case-variants",
+			"rules": ["KEYS-22", "KEYS-65"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"ALG\":\"ES256\",\"Alg\":\"ES256\",\"typ\":\"JWT\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			},
+			"note": "Names match exactly: neither member is alg, so alg is absent."
+		},
+		{
+			"name": "keys-header-duplicate-alg-last-wins",
+			"rules": ["KEYS-22"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"none\",\"alg\":\"ES256\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-header-duplicate-alg-last-refused",
+			"rules": ["KEYS-22"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"alg\":\"none\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-header-duplicate-alg-last-null",
+			"rules": ["KEYS-22"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"alg\":null}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			},
+			"note": "A later null counts as null."
+		},
+		{
+			"name": "keys-header-crit-array",
+			"rules": ["KEYS-23"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"crit\":[\"exp\"],\"exp\":1}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-header-crit-empty-array",
+			"rules": ["KEYS-23"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"crit\":[]}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-header-crit-null",
+			"rules": ["KEYS-23"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"crit\":null}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			},
+			"note": "A crit member of any value, null included, is refused."
+		},
+		{
+			"name": "keys-header-crit-b64",
+			"rules": ["KEYS-23"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"b64\":false,\"crit\":[\"b64\"]}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-header-crit-escaped-name",
+			"rules": ["KEYS-23", "KEYS-22"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"\\u0063rit\":[]}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-header-crit-case-variants-ignored",
+			"rules": ["KEYS-23", "KEYS-22"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"CRIT\":[\"x\"],\"Crit\":1}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-header-null",
+			"rules": ["KEYS-24"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "null",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-header-array",
+			"rules": ["KEYS-24"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "[\"ES256\"]",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-header-number",
+			"rules": ["KEYS-24"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "1",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-header-trailing-data",
+			"rules": ["KEYS-24"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\"}{}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			},
+			"note": "Exactly one JSON value."
+		},
+		{
+			"name": "keys-header-surrounding-whitespace-accepted",
+			"rules": ["KEYS-24"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "\n {\"alg\":\"ES256\"} \t\r\n",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-header-not-json",
+			"rules": ["KEYS-24"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\"",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-header-empty",
+			"rules": ["KEYS-24"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-header-invalid-utf8",
+			"rules": ["KEYS-66"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"${hex:ff}\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-header-overlong-utf8",
+			"rules": ["KEYS-66"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"${hex:c0af}\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-header-bom",
+			"rules": ["KEYS-66", "KEYS-36"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "${hex:efbbbf}{\"alg\":\"ES256\",\"typ\":\"JWT\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-header-multibyte-utf8-accepted",
+			"rules": ["KEYS-66"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"${hex:f09f9880}\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-header-lone-surrogate",
+			"rules": ["KEYS-37"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"\\ud800\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			},
+			"note": "The member is otherwise ignored, but the header text is malformed."
+		},
+		{
+			"name": "keys-header-lone-surrogate-in-name",
+			"rules": ["KEYS-37"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"\\udc00\":1}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-header-surrogate-pair-accepted",
+			"rules": ["KEYS-37"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"\\ud83d\\ude00\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-order-header-surrogate-before-alg",
+			"rules": ["KEYS-37", "KEYS-67", "INBOUND-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"none\",\"kid\":\"\\ud800\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-order-header-bom-before-alg",
+			"rules": ["KEYS-66", "KEYS-67", "INBOUND-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "${hex:efbbbf}{\"alg\":\"none\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-order-header-object-before-alg",
+			"rules": ["KEYS-24", "KEYS-67"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "[\"alg\",\"ES256\"]",
+					"signature": ["empty"],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			},
+			"note": "Not an object, no alg and an empty signature: the object check comes first."
+		},
+		{
+			"name": "keys-order-header-encoding-before-alg",
+			"rules": ["KEYS-26", "KEYS-67"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"none\",\"kid\":\"k\"}",
+					"headerSegment": ["pad"],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-order-header-before-signature",
+			"rules": ["KEYS-66", "KEYS-67"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"${hex:ff}\"}",
+					"signature": ["flip"],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-order-signature-before-payload",
+			"rules": ["KEYS-31", "KEYS-67"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"signature": ["flip"],
+					"payload": "{\"booster\":"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			},
+			"note": "The payload is not JSON, but the signature is checked first."
+		},
+		{
+			"name": "keys-order-signature-before-payload-encoding",
+			"rules": ["KEYS-26", "KEYS-67"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payloadSegment": ["pad"],
+					"key": "other",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1700000000,\"x\":\"~?\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-order-signature-before-payload-surrogate",
+			"rules": ["KEYS-37", "KEYS-67"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"signature": ["flip"],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"\\ud800\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-order-signature-before-payload-bom",
+			"rules": ["KEYS-36", "KEYS-67"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"key": "other",
+					"payload": "${hex:efbbbf}{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-order-alg-before-signature-length",
+			"rules": ["KEYS-65", "KEYS-31", "KEYS-67"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"HS256\"}",
+					"signature": [
+						{
+							"truncate": 2
+						}
+					],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-order-payload-before-claims",
+			"rules": ["KEYS-37", "INBOUND-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"\\udfff\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			},
+			"note": "round is missing too, but the payload text is malformed first."
+		},
+		{
+			"name": "keys-order-partner-keys-before-token",
+			"rules": ["KEYS-46", "INBOUND-31"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"transform": [
+						{
+							"segments": 2
+						}
+					]
+				},
+				"partnerKeys": []
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-order-boostx-key-before-token",
+			"rules": ["KEYS-46", "KEYS-18"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"key": "other",
+					"header": "{\"alg\":\"none\"}"
+				},
+				"boostxKey": "@unusable"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-order-boostx-key-before-partner-keys",
+			"rules": ["KEYS-46", "INBOUND-59"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"boostxKey": null,
+				"partnerKeys": ["@unusable"]
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			},
+			"note": "Both keys fail with the same category; the order between them shows only in messages."
+		},
+		{
+			"name": "keys-b64-header-padded",
+			"rules": ["KEYS-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"~?\"}",
+					"headerSegment": ["pad"],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-b64-header-std-alphabet",
+			"rules": ["KEYS-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"~?\"}",
+					"headerSegment": ["std-alphabet"],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-b64-header-trailing-bits",
+			"rules": ["KEYS-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"~?\"}",
+					"headerSegment": ["trailing-bits"],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-b64-header-line-feed",
+			"rules": ["KEYS-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"~?\"}",
+					"headerSegment": [
+						{
+							"insert": "\n",
+							"at": 8
+						}
+					],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-b64-header-carriage-return",
+			"rules": ["KEYS-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"~?\"}",
+					"headerSegment": [
+						{
+							"insert": "\r",
+							"at": 8
+						}
+					],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-b64-header-length-1-mod-4",
+			"rules": ["KEYS-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"k\"}",
+					"headerSegment": [
+						{
+							"truncate": 1
+						}
+					],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-b64-payload-padded",
+			"rules": ["KEYS-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payloadSegment": ["pad"],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1700000000,\"x\":\"~?\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			},
+			"note": "The signature covers the padded text, so only the payload encoding fails."
+		},
+		{
+			"name": "keys-b64-payload-std-alphabet",
+			"rules": ["KEYS-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payloadSegment": ["std-alphabet"],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1700000000,\"x\":\"~?\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-b64-payload-trailing-bits",
+			"rules": ["KEYS-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payloadSegment": ["trailing-bits"],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1700000000,\"x\":\"~?\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-b64-payload-space",
+			"rules": ["KEYS-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payloadSegment": [
+						{
+							"insert": " ",
+							"at": 12
+						}
+					],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1700000000,\"x\":\"~?\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-b64-static-payload-accepted",
+			"rules": ["KEYS-26"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1700000000,\"x\":\"~?\"}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": 1700000000
+				}
+			},
+			"note": "The untransformed payload the b64-payload cases start from."
+		},
+		{
+			"name": "keys-b64-signature-padded",
+			"rules": ["KEYS-31"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"signature": ["pad"],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-b64-signature-std-alphabet",
+			"rules": ["KEYS-31"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"signature": ["std-alphabet"],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-b64-signature-trailing-bits",
+			"rules": ["KEYS-31"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"signature": ["trailing-bits"],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-b64-signature-line-feed",
+			"rules": ["KEYS-31"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"signature": [
+						{
+							"insert": "\n",
+							"at": 20
+						}
+					],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-b64-signature-length-1-mod-4",
+			"rules": ["KEYS-31"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"signature": [
+						{
+							"truncate": 1
+						}
+					],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-sig-63-bytes",
+			"rules": ["KEYS-29", "KEYS-31"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"signature": [
+						{
+							"truncate": 2
+						}
+					],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-sig-67-bytes",
+			"rules": ["KEYS-29", "KEYS-31"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"signature": [
+						{
+							"append": "AAAA"
+						}
+					],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-sig-empty",
+			"rules": ["KEYS-31"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"signature": ["empty"],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-sig-zero",
+			"rules": ["KEYS-30"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"signature": ["zero"],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			},
+			"note": "r = s = 0 is a signature failure, not a key error."
+		},
+		{
+			"name": "keys-sig-flipped",
+			"rules": ["KEYS-29"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"signature": ["flip"],
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-sig-wrong-key",
+			"rules": ["KEYS-29"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"key": "other",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-sig-high-s-accepted",
+			"rules": ["KEYS-30"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"raw": "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJib29zdGVyIjp7ImdpZCI6eyJwYXJ0bmVyIjoiYWNtZSIsInVzZXIiOiJ1LTEiLCJiZXQiOiJiLTEiLCJzaWduYXR1cmUiOiJRZGNrOEpnWF9hay1lbWplRVZ1UFhoU29KNFVrZmpmU1BaV3VFTlpVYlEwRDdPSGU4THdYNlRDbVdQbURhaTdTZHhKWENTUVhMeHc1ZDZVdUJuVDZ0dyJ9LCJyb3VuZCI6MiwiYm9vc3QiOjEuNSwiZmluYWwiOmZhbHNlLCJqYWNrcG90IjpmYWxzZX0sImlhdCI6MTcwMDAwMDAwMH0.sUB3ke9KPuIF1-99ZA14kSM6YYpKUHpEjXpaSBG9mjq_wbHMxJsvJ9P8t2yVjrDsNADm741wYqmZjzBdmCtBrg"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": 1700000000
+				}
+			},
+			"note": "A fixed token whose JWS signature has s > n/2; low-S is not required."
+		},
+		{
+			"name": "keys-gid-sig-high-s-accepted",
+			"rules": ["KEYS-30", "KEYS-47"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ38Ex4gD0PoF89ZpwZ8ldEtRdSjpIMAb2i6QiWU9e4qmg\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ38Ex4gD0PoF89ZpwZ8ldEtRdSjpIMAb2i6QiWU9e4qmg"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "The fixed gid signature with s replaced by n - s."
+		},
+		{
+			"name": "keys-gid-sig-std-alphabet",
+			"rules": ["KEYS-47"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX/ak+emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-gid-sig-padded",
+			"rules": ["KEYS-47"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw==\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-gid-sig-trailing-bits",
+			"rules": ["KEYS-47"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tx\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-gid-sig-85-chars",
+			"rules": ["KEYS-47"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6t\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-gid-sig-87-chars",
+			"rules": ["KEYS-47"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX_ak-emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6twA\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-gid-sig-empty",
+			"rules": ["KEYS-47"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-gid-sig-wrong-key",
+			"rules": ["KEYS-47", "KEYS-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid:gid2},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-order-claims-before-gid-form",
+			"rules": ["KEYS-47", "INBOUND-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX/ak+emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw\"},\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "keys-order-outer-signature-before-gid",
+			"rules": ["KEYS-47", "KEYS-67"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"key": "other",
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"Qdck8JgX/ak+emjeEVuPXhSoJ4UkfjfSPZWuENZUbQ0D7OHe8LwX6TCmWPmDai7SdxJXCSQXLxw5d6UuBnT6tw\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_signature"]
+			},
+			"note": "Both signatures are bad: the outer one is checked first, so invalid_gid is absent."
+		},
+		{
+			"name": "keys-payload-null",
+			"rules": ["KEYS-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "null"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-payload-array",
+			"rules": ["KEYS-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "[{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}]"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-payload-string",
+			"rules": ["KEYS-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "\"booster\""
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-payload-trailing-object",
+			"rules": ["KEYS-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}{}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-payload-trailing-garbage",
+			"rules": ["KEYS-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}} x"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-payload-surrounding-whitespace-accepted",
+			"rules": ["KEYS-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "\r\n\t {\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}} \n"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-payload-not-json",
+			"rules": ["KEYS-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-payload-empty",
+			"rules": ["KEYS-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": ""
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-payload-duplicate-root-last-wins",
+			"rules": ["KEYS-33"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"booster\":{\"gid\":${gid},\"round\":3,\"boost\":1.5,\"final\":false,\"jackpot\":false}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 3,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-payload-duplicate-not-merged",
+			"rules": ["KEYS-33"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"booster\":{\"round\":3,\"boost\":1.5,\"final\":false,\"jackpot\":false}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "gid"
+			},
+			"note": "The later booster replaces the earlier one whole, so gid is missing."
+		},
+		{
+			"name": "keys-payload-duplicate-inner-last-wins",
+			"rules": ["KEYS-33"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":9,\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-payload-duplicate-later-null",
+			"rules": ["KEYS-33"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false,\"round\":null},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "keys-payload-duplicate-gid-last-wins",
+			"rules": ["KEYS-33"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"zeta\"},\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-payload-duplicate-iat-last-wins",
+			"rules": ["KEYS-33"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":\"x\",\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-payload-root-name-case",
+			"rules": ["KEYS-34"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"Booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "booster"
+			}
+		},
+		{
+			"name": "keys-payload-root-case-variant-ignored",
+			"rules": ["KEYS-34"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"BOOSTER\":7}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-payload-inner-name-case",
+			"rules": ["KEYS-34"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"Round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "round"
+			}
+		},
+		{
+			"name": "keys-payload-iat-name-case",
+			"rules": ["KEYS-34"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"IAT\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "keys-payload-gid-member-name-case",
+			"rules": ["KEYS-34", "GID-27"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"Partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid"]
+			}
+		},
+		{
+			"name": "keys-payload-escaped-name-accepted",
+			"rules": ["KEYS-34"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"\\u0062ooster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-payload-invalid-utf8",
+			"rules": ["KEYS-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"${hex:ff}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-payload-overlong-2-byte",
+			"rules": ["KEYS-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"${hex:c0af}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-payload-overlong-3-byte",
+			"rules": ["KEYS-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"${hex:e080af}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-payload-overlong-4-byte",
+			"rules": ["KEYS-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"${hex:f08fbfbf}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-payload-encoded-surrogate",
+			"rules": ["KEYS-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"${hex:eda080}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-payload-above-max-code-point",
+			"rules": ["KEYS-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"${hex:f4908080}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-payload-truncated-sequence",
+			"rules": ["KEYS-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"${hex:e282}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-payload-lone-continuation-byte",
+			"rules": ["KEYS-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"${hex:80}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-payload-utf8-boundaries-accepted",
+			"rules": ["KEYS-35"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"${hex:c280}${hex:dfbf}${hex:e0a080}${hex:ed9fbf}${hex:ee8080}${hex:f0908080}${hex:f48fbfbf}\"}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "The smallest and largest well-formed sequences around each refused form."
+		},
+		{
+			"name": "keys-payload-bom",
+			"rules": ["KEYS-36"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "${hex:efbbbf}{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-payload-inner-feff-accepted",
+			"rules": ["KEYS-36"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"${hex:efbbbf}\"}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "U+FEFF is refused only as the first bytes."
+		},
+		{
+			"name": "keys-surrogate-gid-bet-never-verified",
+			"rules": ["KEYS-37", "GID-04", "INBOUND-28"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"\\ud800\",\"signature\":\"${sig:lone}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"lone": {
+					"key": "partner",
+					"text": "{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"\\ud800\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			},
+			"note": "The GID signature covers the bytes JSON.stringify gives for the id, so only the lone-surrogate rule refuses it."
+		},
+		{
+			"name": "keys-surrogate-lone-low",
+			"rules": ["KEYS-37"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"\\udc00\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-surrogate-uppercase-hex",
+			"rules": ["KEYS-37"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"\\uD800\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-surrogate-high-then-plain-escape",
+			"rules": ["KEYS-37"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"\\ud800\\u0041\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-surrogate-high-then-raw-character",
+			"rules": ["KEYS-37"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"\\ud800A\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-surrogate-reversed-pair",
+			"rules": ["KEYS-37"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"\\udc00\\ud800\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-surrogate-high-before-pair",
+			"rules": ["KEYS-37"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"\\ud800\\ud800\\udc00\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-surrogate-high-then-escaped-backslash",
+			"rules": ["KEYS-37"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"\\ud800\\\\udc00\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			},
+			"note": "The text after the high surrogate is an escaped backslash followed by the letters udc00."
+		},
+		{
+			"name": "keys-surrogate-escaped-backslash-accepted",
+			"rules": ["KEYS-37"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"\\\\ud800\"}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "An escaped backslash followed by the letters ud800 is not an escape."
+		},
+		{
+			"name": "keys-surrogate-backslash-then-lone",
+			"rules": ["KEYS-37"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"\\\\\\ud800\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-surrogate-pairs-accepted",
+			"rules": ["KEYS-37"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"\\ud83d\\ude00\\uDBFF\\uDFFF\\ud800\\udc00\"}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-surrogate-in-member-name",
+			"rules": ["KEYS-37"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"\\udfff\":1}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-surrogate-in-replaced-duplicate",
+			"rules": ["KEYS-37", "KEYS-33"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"\\ud800\",\"x\":\"ok\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			},
+			"note": "The rule reads the text, so a member a later duplicate replaces still counts."
+		},
+		{
+			"name": "keys-surrogate-pair-in-gid-accepted",
+			"rules": ["KEYS-37"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-\\ud83d\\ude00\",\"signature\":\"${sig:emoji}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"emoji": {
+					"key": "partner",
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-😀"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-😀",
+						"signature": "${sig:emoji}"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-surrogate-booster-extract",
+			"rules": ["KEYS-37", "INBOUND-21"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"\\ud800\",\"signature\":\"${sig:lone}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"lone": {
+					"key": "partner",
+					"text": "{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"\\ud800\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-surrogate-checkbet-extract",
+			"rules": ["KEYS-37", "INBOUND-21"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"\\ud800\",\"signature\":\"${sig:lone}\"}},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"lone": {
+					"key": "partner",
+					"text": "{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"\\ud800\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			}
+		},
+		{
+			"name": "keys-surrogate-checkbet-parse",
+			"rules": ["KEYS-37"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"\\ud800\",\"signature\":\"${sig:lone}\"}},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"lone": {
+					"key": "partner",
+					"text": "{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"\\ud800\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			}
+		},
+		{
+			"name": "keys-surrogate-verifykeys-iss",
+			"rules": ["KEYS-37"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\\udc00\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			},
+			"note": "shape, not iss-aud: the text is malformed before any claim is compared."
+		},
+		{
+			"name": "keys-surrogate-verifykeys-extract-aud",
+			"rules": ["KEYS-37"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\\ud800\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "keys-surrogate-verifykeys-header",
+			"rules": ["KEYS-37"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"\\udbff\"}",
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "keys-extract-ignores-header-and-signature",
+			"rules": ["KEYS-27"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"none\"}",
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"signature": ["empty"]
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			}
+		},
+		{
+			"name": "keys-extract-ignores-undecodable-header",
+			"rules": ["KEYS-27"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"headerSegment": [
+						{
+							"insert": "*",
+							"at": 2
+						}
+					]
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			}
+		},
+		{
+			"name": "keys-extract-ignores-trailing-newline",
+			"rules": ["KEYS-27", "KEYS-26"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"transform": [
+						{
+							"append": "\n"
+						}
+					]
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			},
+			"note": "The line feed lands in the signature segment, which extraction does not read."
+		},
+		{
+			"name": "keys-extract-two-segments",
+			"rules": ["KEYS-27", "KEYS-28"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"transform": [
+						{
+							"segments": 2
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-extract-four-segments",
+			"rules": ["KEYS-27", "KEYS-28"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"transform": [
+						{
+							"append": "."
+						}
+					]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-extract-payload-padded",
+			"rules": ["KEYS-27", "KEYS-26"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1700000000,\"x\":\"~?\"}",
+					"payloadSegment": ["pad"]
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-extract-payload-bom",
+			"rules": ["KEYS-27", "KEYS-36"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "${hex:efbbbf}{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-extract-payload-not-object",
+			"rules": ["KEYS-27", "KEYS-32"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "[]"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster"]
+			}
+		},
+		{
+			"name": "keys-extract-checkbet-ignores-header",
+			"rules": ["KEYS-27"],
+			"op": "checkbet.extract",
+			"input": {
+				"token": {
+					"header": "null",
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}",
+					"signature": ["zero"]
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			}
+		},
+		{
+			"name": "keys-extract-verifykeys-ignores-header",
+			"rules": ["KEYS-27"],
+			"op": "verifykeys.extractRequest",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"none\",\"crit\":[]}",
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"signature": ["empty"]
+				}
+			},
+			"want": {
+				"ok": {
+					"partner": "acme"
+				}
+			}
+		},
+		{
+			"name": "keys-parse-boostx-key-unusable",
+			"rules": ["KEYS-18", "KEYS-63"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"boostxKey": "@unusable"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			},
+			"note": "The key error passes through: it is not wrapped as an invalid Booster."
+		},
+		{
+			"name": "keys-parse-boostx-key-null",
+			"rules": ["KEYS-18"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"boostxKey": null
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-parse-partner-keys-empty",
+			"rules": ["KEYS-45", "KEYS-46"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"partnerKeys": []
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-parse-partner-keys-all-unusable",
+			"rules": ["KEYS-63", "KEYS-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"partnerKeys": ["@unusable"]
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-parse-unusable-partner-key-skipped",
+			"rules": ["KEYS-63", "KEYS-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"partnerKeys": ["@unusable", "partner"]
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-parse-null-partner-key-skipped",
+			"rules": ["KEYS-63", "KEYS-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"partnerKeys": [null, "partner"]
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-parse-rotation-second-key",
+			"rules": ["KEYS-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"partnerKeys": ["other", "partner"]
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-parse-rotation-earlier-key-signed",
+			"rules": ["KEYS-45"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid:gid2},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"partnerKeys": ["partner", "partner2"]
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid2}"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-parse-no-listed-key-verifies",
+			"rules": ["KEYS-45", "KEYS-47"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"partnerKeys": ["other"]
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_gid", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-parse-checkbet-boostx-key-unusable",
+			"rules": ["KEYS-18", "KEYS-63"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				},
+				"boostxKey": "@unusable"
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-parse-checkbet-partner-keys-empty",
+			"rules": ["KEYS-46"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}",
+					"transform": [
+						{
+							"segments": 2
+						}
+					]
+				},
+				"partnerKeys": []
+			},
+			"want": {
+				"error": ["invalid_public_key"]
+			}
+		},
+		{
+			"name": "keys-parse-verifykeys-key-unusable",
+			"rules": ["KEYS-18", "KEYS-60"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"key": "@unusable"
+			},
+			"want": {
+				"error": ["invalid_public_key"],
+				"reason": "signature"
+			},
+			"note": "The reason function maps an invalid public key to signature."
+		},
+		{
+			"name": "keys-parse-verifykeys-response-key-null",
+			"rules": ["KEYS-18", "KEYS-60"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now}}"
+				},
+				"key": null
+			},
+			"want": {
+				"error": ["invalid_public_key"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "keys-checkbet-accepted",
+			"rules": ["KEYS-67"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1",
+						"signature": "${sig:gid}"
+					},
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-checkbet-crit",
+			"rules": ["KEYS-23"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"typ\":\"JWT\",\"crit\":[\"x\"]}",
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-checkbet-alg-absent",
+			"rules": ["KEYS-65"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"header": "{\"typ\":\"JWT\"}",
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-checkbet-header-array",
+			"rules": ["KEYS-24"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"header": "[]",
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			}
+		},
+		{
+			"name": "keys-checkbet-signature-empty",
+			"rules": ["KEYS-31"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"signature": ["empty"],
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_signature"]
+			}
+		},
+		{
+			"name": "keys-checkbet-payload-invalid-utf8",
+			"rules": ["KEYS-35"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100},\"x\":\"${hex:fe}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			}
+		},
+		{
+			"name": "keys-checkbet-three-segments-required",
+			"rules": ["KEYS-28"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"transform": [
+						{
+							"append": "."
+						}
+					],
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet"]
+			}
+		},
+		{
+			"name": "keys-vk-header-null",
+			"rules": ["KEYS-24"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"header": "null",
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "keys-vk-alg-absent",
+			"rules": ["KEYS-65"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"header": "{\"typ\":\"JWT\"}",
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "keys-vk-crit",
+			"rules": ["KEYS-23"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"crit\":[\"b64\"],\"b64\":false}",
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "keys-vk-typ-ignored",
+			"rules": ["KEYS-64"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"typ\":1}",
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "keys-vk-duplicate-alg-last-wins",
+			"rules": ["KEYS-22"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"none\",\"alg\":\"ES256\"}",
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "keys-vk-two-segments",
+			"rules": ["KEYS-28"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"transform": [
+						{
+							"segments": 2
+						}
+					],
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "keys-vk-signature-padded",
+			"rules": ["KEYS-31"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"signature": ["pad"],
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "keys-vk-signature-wrong-key",
+			"rules": ["KEYS-29"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"key": "other",
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "keys-vk-header-invalid-utf8",
+			"rules": ["KEYS-66"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"${hex:c0af}\"}",
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "keys-vk-header-bom",
+			"rules": ["KEYS-66"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"header": "${hex:efbbbf}{\"alg\":\"ES256\"}",
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "keys-vk-payload-bom",
+			"rules": ["KEYS-36"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "${hex:efbbbf}{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "keys-vk-payload-trailing-data",
+			"rules": ["KEYS-32"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}[]"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "keys-vk-payload-null",
+			"rules": ["KEYS-32"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "null"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "keys-vk-header-std-alphabet",
+			"rules": ["KEYS-26"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"ES256\",\"kid\":\"~?\"}",
+					"headerSegment": ["std-alphabet"],
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "keys-vk-order-signature-before-payload",
+			"rules": ["KEYS-67", "VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"signature": ["flip"],
+					"payload": "[]"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "keys-vk-order-header-before-signature",
+			"rules": ["KEYS-67", "VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"header": "{\"alg\":\"none\",\"kid\":\"\\ud800\"}",
+					"signature": ["empty"],
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "keys-vk-response-crit",
+			"rules": ["KEYS-23"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now}}",
+					"header": "{\"alg\":\"ES256\",\"crit\":[]}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys", "invalid_signature"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "keys-vk-response-accepted",
+			"rules": ["KEYS-67"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "keys-exp-future-accepted",
+			"rules": ["KEYS-42"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":${now+100}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-exp-now-refused",
+			"rules": ["KEYS-42"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "exp"
+			},
+			"note": "exp <= now is refused, and stays refused as the clock moves on."
+		},
+		{
+			"name": "keys-exp-past-refused",
+			"rules": ["KEYS-42"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":1}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "exp"
+			}
+		},
+		{
+			"name": "keys-exp-margin-accepted",
+			"rules": ["KEYS-42"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":${now+20}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-exp-fraction-accepted",
+			"rules": ["KEYS-42"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":${now+100}.5}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "exp is a JSON number, not necessarily an integer."
+		},
+		{
+			"name": "keys-exp-huge-accepted",
+			"rules": ["KEYS-42"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":1e400}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "A number beyond binary64 range reads as +Infinity, which is after now."
+		},
+		{
+			"name": "keys-exp-null",
+			"rules": ["KEYS-42"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "exp"
+			}
+		},
+		{
+			"name": "keys-exp-string",
+			"rules": ["KEYS-42"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":\"${now+100}\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "exp"
+			}
+		},
+		{
+			"name": "keys-exp-boolean",
+			"rules": ["KEYS-42"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":true}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "exp"
+			}
+		},
+		{
+			"name": "keys-nbf-now-accepted",
+			"rules": ["KEYS-42"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"nbf\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "nbf <= now is accepted, and stays accepted as the clock moves on."
+		},
+		{
+			"name": "keys-nbf-past-accepted",
+			"rules": ["KEYS-42"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"nbf\":0}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-nbf-future-refused",
+			"rules": ["KEYS-42"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"nbf\":${now+20}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "nbf"
+			}
+		},
+		{
+			"name": "keys-nbf-null",
+			"rules": ["KEYS-42"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"nbf\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "nbf"
+			}
+		},
+		{
+			"name": "keys-nbf-string",
+			"rules": ["KEYS-42"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"nbf\":\"0\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "nbf"
+			}
+		},
+		{
+			"name": "keys-time-claim-name-case-ignored",
+			"rules": ["KEYS-42", "KEYS-34"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"EXP\":1,\"Nbf\":${now+100},\"NBF\":\"x\"}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now-100}"
+				}
+			}
+		},
+		{
+			"name": "keys-order-iat-before-exp",
+			"rules": ["KEYS-42", "INBOUND-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":\"x\",\"exp\":1}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "keys-order-exp-before-nbf",
+			"rules": ["KEYS-42", "INBOUND-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":${now},\"nbf\":${now+100}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "exp"
+			}
+		},
+		{
+			"name": "keys-order-fields-before-time-claims",
+			"rules": ["KEYS-42", "INBOUND-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false},\"iat\":${now-100},\"exp\":1}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "jackpot"
+			}
+		},
+		{
+			"name": "keys-order-exp-before-gid",
+			"rules": ["KEYS-42", "INBOUND-32"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid:gid2},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "exp"
+			},
+			"note": "The GID was signed by partner2, which is not listed: the claim step runs before GID verification."
+		},
+		{
+			"name": "keys-exp-checked-at-extraction",
+			"rules": ["KEYS-42", "KEYS-49", "INBOUND-21"],
+			"op": "booster.extract",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "exp"
+			}
+		},
+		{
+			"name": "keys-exp-checkbet",
+			"rules": ["KEYS-42"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100},\"exp\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_claim"],
+				"field": "exp"
+			}
+		},
+		{
+			"name": "keys-nbf-checkbet-null",
+			"rules": ["KEYS-42"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":${now-100},\"nbf\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_claim"],
+				"field": "nbf"
+			}
+		},
+		{
+			"name": "keys-vk-exp-now-stale",
+			"rules": ["KEYS-42", "VERIFYKEYS-47"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"exp\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "keys-vk-exp-future-accepted",
+			"rules": ["KEYS-42", "VERIFYKEYS-47"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"exp\":${now+100},\"nbf\":${now}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now}"
+				}
+			}
+		},
+		{
+			"name": "keys-vk-nbf-future-stale",
+			"rules": ["KEYS-42", "VERIFYKEYS-47"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"nbf\":${now+20}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "keys-vk-exp-null-shape",
+			"rules": ["KEYS-42", "VERIFYKEYS-47"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"exp\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "keys-vk-nbf-string-shape",
+			"rules": ["KEYS-42", "VERIFYKEYS-47"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"nbf\":\"0\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "keys-vk-order-exp-type-before-iss-aud",
+			"rules": ["KEYS-42", "VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"zeta\",\"iat\":${now},\"exp\":\"x\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "shape"
+			}
+		},
+		{
+			"name": "keys-vk-order-iss-aud-before-exp",
+			"rules": ["KEYS-42", "VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"zeta\",\"iat\":${now},\"exp\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "iss-aud"
+			}
+		},
+		{
+			"name": "keys-vk-order-exp-before-nonce",
+			"rules": ["KEYS-42", "VERIFYKEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":0},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now},\"exp\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "keys-vk-response-exp-now-stale",
+			"rules": ["KEYS-42"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now},\"exp\":${now}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "keys-iat-missing",
+			"rules": ["KEYS-39"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"x\":1}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "missing_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "keys-iat-null",
+			"rules": ["KEYS-39"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":null}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "keys-iat-fraction",
+			"rules": ["KEYS-39"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1700000000.5}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "keys-iat-exponent-accepted",
+			"rules": ["KEYS-39"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1.7e9}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": 1700000000
+				}
+			}
+		},
+		{
+			"name": "keys-iat-dot-zero-accepted",
+			"rules": ["KEYS-39"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1700000000.0}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": 1700000000
+				}
+			}
+		},
+		{
+			"name": "keys-iat-rounds-to-integer-accepted",
+			"rules": ["KEYS-39"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1700000000.0000000001}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": 1700000000
+				}
+			},
+			"note": "The text rounds to the binary64 value 1700000000, which is integral."
+		},
+		{
+			"name": "keys-iat-max-safe-accepted",
+			"rules": ["KEYS-39"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":9007199254740991}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": 9007199254740991
+				}
+			}
+		},
+		{
+			"name": "keys-iat-2p53",
+			"rules": ["KEYS-39"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":9007199254740992}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "keys-iat-rounds-past-max-safe",
+			"rules": ["KEYS-39"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":9007199254740993}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			},
+			"note": "Rounds to 2^53, beyond 2^53-1."
+		},
+		{
+			"name": "keys-iat-min-safe-accepted",
+			"rules": ["KEYS-39"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":-9007199254740991}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": -9007199254740991
+				}
+			}
+		},
+		{
+			"name": "keys-iat-below-min-safe",
+			"rules": ["KEYS-39"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":-9007199254740992}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "keys-iat-1e20",
+			"rules": ["KEYS-39"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1e20}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "keys-iat-overflow",
+			"rules": ["KEYS-39"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1e400}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			},
+			"note": "Beyond binary64 range: +Infinity, not an integer."
+		},
+		{
+			"name": "keys-iat-underflow-accepted",
+			"rules": ["KEYS-39"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":1e-400}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": 0
+				}
+			},
+			"note": "Underflows to 0, which is integral."
+		},
+		{
+			"name": "keys-iat-negative-zero-accepted",
+			"rules": ["KEYS-39"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":-0}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": 0
+				}
+			}
+		},
+		{
+			"name": "keys-iat-zero-accepted",
+			"rules": ["KEYS-39", "KEYS-40"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":0}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": 0
+				}
+			},
+			"note": "No age check: any integral iat is accepted."
+		},
+		{
+			"name": "keys-iat-negative-accepted",
+			"rules": ["KEYS-39", "KEYS-40"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":-1}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": -1
+				}
+			}
+		},
+		{
+			"name": "keys-iat-far-future-accepted",
+			"rules": ["KEYS-39", "KEYS-40"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now+100000}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u-1",
+						"bet": "b-1"
+					},
+					"round": 2,
+					"iat": "${now+100000}"
+				}
+			}
+		},
+		{
+			"name": "keys-iat-string",
+			"rules": ["KEYS-39"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":\"1700000000\"}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "keys-iat-boolean",
+			"rules": ["KEYS-39"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":true}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "keys-iat-object",
+			"rules": ["KEYS-39"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":{}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_booster", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "keys-iat-checkbet-missing",
+			"rules": ["KEYS-39"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}}}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "missing_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "keys-iat-checkbet-fraction",
+			"rules": ["KEYS-39"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":${gid}},\"iat\":1.5}"
+				}
+			},
+			"want": {
+				"error": ["invalid_checkbet", "invalid_claim"],
+				"field": "iat"
+			}
+		},
+		{
+			"name": "keys-window-default",
+			"rules": ["KEYS-41"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-20}}"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now-20}"
+				}
+			}
+		},
+		{
+			"name": "keys-window-zero-is-default",
+			"rules": ["KEYS-41"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-20}}"
+				},
+				"windowSeconds": 0
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now-20}"
+				}
+			},
+			"note": "With a zero-second window this iat would be stale."
+		},
+		{
+			"name": "keys-window-negative-zero-is-default",
+			"rules": ["KEYS-41"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-20}}"
+				},
+				"windowSeconds": {
+					"$number": "-0"
+				}
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now-20}"
+				}
+			}
+		},
+		{
+			"name": "keys-window-null-is-default",
+			"rules": ["KEYS-41"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-20}}"
+				},
+				"windowSeconds": null
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now-20}"
+				}
+			}
+		},
+		{
+			"name": "keys-window-fraction-under-one",
+			"rules": ["KEYS-41"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-20}}"
+				},
+				"windowSeconds": 0.5
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			},
+			"note": "A positive value under 1 s is a zero-second window, not the default."
+		},
+		{
+			"name": "keys-window-wider-past",
+			"rules": ["KEYS-41"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-45}}"
+				},
+				"windowSeconds": 60
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now-45}"
+				}
+			}
+		},
+		{
+			"name": "keys-window-wider-future",
+			"rules": ["KEYS-41"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now+45}}"
+				},
+				"windowSeconds": 60
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now+45}"
+				}
+			}
+		},
+		{
+			"name": "keys-window-fraction-truncated",
+			"rules": ["KEYS-41"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-45}}"
+				},
+				"windowSeconds": 60.9
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now-45}"
+				}
+			}
+		},
+		{
+			"name": "keys-window-narrower",
+			"rules": ["KEYS-41"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now-20}}"
+				},
+				"windowSeconds": 5
+			},
+			"want": {
+				"error": ["invalid_verify_keys"],
+				"reason": "stale"
+			}
+		},
+		{
+			"name": "keys-window-negative",
+			"rules": ["KEYS-41"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"windowSeconds": -1
+			},
+			"want": {
+				"error": ["invalid_claim"]
+			}
+		},
+		{
+			"name": "keys-window-negative-fraction",
+			"rules": ["KEYS-41"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"windowSeconds": -0.5
+			},
+			"want": {
+				"error": ["invalid_claim"]
+			}
+		},
+		{
+			"name": "keys-window-nan",
+			"rules": ["KEYS-41"],
+			"needs": ["non-finite"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"windowSeconds": {
+					"$number": "NaN"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"]
+			},
+			"note": "A runner that cannot pass NaN as a duration skips this case."
+		},
+		{
+			"name": "keys-window-response-wider",
+			"rules": ["KEYS-41"],
+			"op": "verifykeys.parseResponse",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"acme\",\"aud\":\"boostx\",\"iat\":${now-45}}"
+				},
+				"windowSeconds": 60
+			},
+			"want": {
+				"ok": {
+					"partnerID": "acme",
+					"nonce": 7,
+					"iat": "${now-45}"
+				}
+			}
+		},
+		{
+			"name": "keys-order-window-before-token",
+			"rules": ["KEYS-41", "VERIFYKEYS-38"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}",
+					"transform": [
+						{
+							"segments": 2
+						}
+					]
+				},
+				"windowSeconds": -1
+			},
+			"want": {
+				"error": ["invalid_claim"]
+			},
+			"note": "An invalid window is a configuration error, reported before the token is read."
+		},
+		{
+			"name": "keys-order-key-before-window",
+			"rules": ["KEYS-41", "KEYS-46"],
+			"op": "verifykeys.parseRequest",
+			"input": {
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"key": "@unusable",
+				"windowSeconds": -1
+			},
+			"want": {
+				"error": ["invalid_public_key"],
+				"reason": "signature"
+			}
+		},
+		{
+			"name": "keys-handler-claims-before-lookup",
+			"rules": ["KEYS-49", "HTTP-21"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "set-boost",
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":0,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"keyStoreCalled": false,
+				"betStoreCalled": false
+			}
+		},
+		{
+			"name": "keys-handler-empty-gid-partner",
+			"rules": ["KEYS-49", "KEYS-48"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "set-boost",
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"keyStoreCalled": false,
+				"betStoreCalled": false
+			}
+		},
+		{
+			"name": "keys-handler-exp-before-lookup",
+			"rules": ["KEYS-49", "KEYS-42"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "set-boost",
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"exp\":${now}}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"keyStoreCalled": false,
+				"betStoreCalled": false
+			}
+		},
+		{
+			"name": "keys-handler-surrogate-before-lookup",
+			"rules": ["KEYS-37", "KEYS-49"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "set-boost",
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100},\"x\":\"\\ud800\"}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"keyStoreCalled": false,
+				"betStoreCalled": false
+			}
+		},
+		{
+			"name": "keys-handler-header-read-after-lookup",
+			"rules": ["KEYS-27", "KEYS-49"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "set-boost",
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"header": "{\"alg\":\"none\"}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"keyStoreCalled": true,
+				"betStoreCalled": false
+			},
+			"note": "Extraction does not read the header, so the keys are looked up and the parse then refuses alg."
+		},
+		{
+			"name": "keys-handler-unknown-partner-quoted",
+			"rules": ["KEYS-51", "KEYS-50"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "set-boost",
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"ac\\\"me\",\"user\":\"u-1\",\"bet\":\"b-1\",\"signature\":\"${sig:gid}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "unknown partner \"",
+				"keyStoreCalled": true,
+				"betStoreCalled": false
+			},
+			"note": "The id is quoted; how the quote inside it is escaped is free."
+		},
+		{
+			"name": "keys-handler-boostx-lookup-failure-decides",
+			"rules": ["KEYS-52"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "set-boost",
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"keyStore": {
+					"acme": {
+						"partnerPublicKeys": {
+							"error": "unknown_partner"
+						},
+						"partnerPrivateKey": "partner",
+						"boostxPublicKey": {
+							"error": "other"
+						}
+					}
+				}
+			},
+			"want": {
+				"status": 500,
+				"betStoreCalled": false
+			},
+			"note": "Both lookups fail; the BoostX key lookup decides (500), not the unknown partner (400)."
+		},
+		{
+			"name": "keys-handler-boostx-unknown-partner-decides",
+			"rules": ["KEYS-52"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "set-boost",
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"keyStore": {
+					"acme": {
+						"partnerPublicKeys": {
+							"error": "other"
+						},
+						"partnerPrivateKey": "partner",
+						"boostxPublicKey": {
+							"error": "unknown_partner"
+						}
+					}
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "unknown partner \"",
+				"betStoreCalled": false
+			}
+		},
+		{
+			"name": "keys-handler-store-boostx-key-unusable",
+			"rules": ["KEYS-53", "KEYS-63", "KEYS-44"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "set-boost",
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"keyStore": {
+					"acme": {
+						"partnerPublicKeys": ["partner"],
+						"partnerPrivateKey": "partner",
+						"boostxPublicKey": "@unusable"
+					}
+				}
+			},
+			"want": {
+				"status": 500,
+				"error": "failed to verify token",
+				"betStoreCalled": false
+			}
+		},
+		{
+			"name": "keys-handler-store-partner-keys-empty",
+			"rules": ["KEYS-53", "KEYS-45"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "set-boost",
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"keyStore": {
+					"acme": {
+						"partnerPublicKeys": [],
+						"partnerPrivateKey": "partner",
+						"boostxPublicKey": "boostx"
+					}
+				}
+			},
+			"want": {
+				"status": 500,
+				"error": "failed to verify token",
+				"betStoreCalled": false
+			}
+		},
+		{
+			"name": "keys-handler-store-unusable-partner-key-skipped",
+			"rules": ["KEYS-63", "KEYS-45"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "set-boost",
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				},
+				"keyStore": {
+					"acme": {
+						"partnerPublicKeys": ["@unusable", "partner"],
+						"partnerPrivateKey": "partner",
+						"boostxPublicKey": "boostx"
+					}
+				}
+			},
+			"want": {
+				"status": 200,
+				"body": {
+					"result": {
+						"ok": true
+					}
+				},
+				"betStoreCalled": true
+			}
+		},
+		{
+			"name": "keys-handler-key-before-bad-signature",
+			"rules": ["KEYS-46", "HTTP-26"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "set-boost",
+				"token": {
+					"payload": "{\"booster\":{\"gid\":${gid},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}",
+					"key": "other"
+				},
+				"keyStore": {
+					"acme": {
+						"partnerPublicKeys": ["partner"],
+						"partnerPrivateKey": "partner",
+						"boostxPublicKey": "@unusable"
+					}
+				}
+			},
+			"want": {
+				"status": 500,
+				"error": "failed to verify token",
+				"betStoreCalled": false
+			},
+			"note": "The token is forged and the store key unusable: the key error comes first, so 500 rather than 400."
+		},
+		{
+			"name": "keys-handler-verifykeys-surrogate-before-lookup",
+			"rules": ["KEYS-37", "KEYS-49"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\\udc00\",\"iat\":${now}}"
+				}
+			},
+			"want": {
+				"status": 400,
+				"errorPrefix": "invalid verifyKeysJWT: shape",
+				"keyStoreCalled": false,
+				"betStoreCalled": false
+			}
+		},
+		{
+			"name": "keys-handler-verifykeys-store-key-unusable",
+			"rules": ["KEYS-53", "KEYS-60", "KEYS-44"],
+			"op": "http.serve",
+			"input": {
+				"endpoint": "verify-keys",
+				"token": {
+					"payload": "{\"verifyKeys\":{\"nonce\":7},\"iss\":\"boostx\",\"aud\":\"acme\",\"iat\":${now}}"
+				},
+				"keyStore": {
+					"acme": {
+						"partnerPublicKeys": ["partner"],
+						"partnerPrivateKey": "partner",
+						"boostxPublicKey": "@unusable"
+					}
+				}
+			},
+			"want": {
+				"status": 500,
+				"error": "failed to verify token"
+			},
+			"note": "A handler answers a key error with 500 and never sends the signature reason for it."
+		},
+		{
+			"name": "keys-client-lookup-unknown-partner",
+			"rules": ["KEYS-54", "KEYS-55", "KEYS-58"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"keyStore": {
+					"acme": {
+						"error": "unknown_partner"
+					}
+				}
+			},
+			"want": {
+				"error": ["unknown_partner"],
+				"requests": 0,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "keys-client-role-missing",
+			"rules": ["KEYS-58", "SETTLE-60"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"keyStore": {
+					"acme": null
+				}
+			},
+			"want": {
+				"error": ["invalid_private_key"],
+				"requests": 0,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "keys-client-unusable-key",
+			"rules": ["KEYS-17", "KEYS-55"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"keyStore": {
+					"acme": "@unusable"
+				}
+			},
+			"want": {
+				"error": ["invalid_private_key"],
+				"requests": 0,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "keys-client-lookup-before-params",
+			"rules": ["KEYS-55"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "zeta",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "usd",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["unknown_partner"],
+				"requests": 0,
+				"keyStoreCalled": true
+			},
+			"note": "The key is looked up by params.partner before the parameters are validated."
+		},
+		{
+			"name": "keys-client-lookup-inside-time-limit",
+			"rules": ["KEYS-54", "SETTLE-61"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				},
+				"keyStore": {
+					"acme": {
+						"key": "partner",
+						"delayMs": 3000
+					}
+				},
+				"options": {
+					"timeoutMs": 200
+				}
+			},
+			"want": {
+				"failure": "timeout",
+				"requests": 0
+			},
+			"note": "The per-attempt time limit covers the key-store lookup."
+		}
+	]
+}

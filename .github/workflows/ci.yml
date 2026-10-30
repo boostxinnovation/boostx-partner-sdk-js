@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+# A new push to a pull request cancels its older run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm run test:workerd
+      - run: npm run check:workerd
+      - run: npm pack --dry-run
+
+  # test/spec/ must be the exact vectors/ of the spec commit SPEC_VERSION pins (tag and commit).
+  spec:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check test/spec against the pinned spec commit
+        run: |
+          tag="$(sed -n 's/^tag=//p' SPEC_VERSION)"
+          commit="$(sed -n 's/^commit=//p' SPEC_VERSION)"
+          git clone --depth 1 --branch "$tag" https://github.com/boostxinnovation/boostx-partner-sdk-spec "$RUNNER_TEMP/spec"
+          actual="$(git -C "$RUNNER_TEMP/spec" rev-parse HEAD)"
+          if [ "$actual" != "$commit" ]; then
+            echo "::error::spec tag $tag is commit $actual, SPEC_VERSION names $commit"
+            exit 1
+          fi
+          diff -r "$RUNNER_TEMP/spec/vectors" test/spec
+
+  node:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        node: ['22', '24', '26']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run test:node

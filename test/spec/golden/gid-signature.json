@@ -1,0 +1,11 @@
+{
+  "privateKeyPkcs8": "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgg+yiWqYEEfonSG9S\n9J2fCoWpQen4RwVCwp5oLdWsItChRANCAASlvj4S8JQ0v8W5mCVOJ+45YrVtQh9i\nsIIlhM8pV3j730ArA+TEyBnLuI3wleeclUDC7QSFiUDz6XVs+ideI5Qf\n-----END PRIVATE KEY-----\n",
+  "publicKeySpki": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEpb4+EvCUNL/FuZglTifuOWK1bUIf\nYrCCJYTPKVd4+99AKwPkxMgZy7iN8JXnnJVAwu0EhYlA8+l1bPonXiOUHw==\n-----END PUBLIC KEY-----\n",
+  "gid": {
+    "partner": "partner-xyz",
+    "user": "user/<42>&Søren",
+    "bet": "bet  \n1",
+    "signature": "ZVsIq0cnvphruOl9xOsRNY0wjyvCKwCxhAOYNNgwO5f1Fa_vKaXRJvPtW39gXJgoFoKaBpdm4ko5vT8DEor-Ag"
+  },
+  "canonicalHex": "7b22706172746e6572223a22706172746e65722d78797a222c2275736572223a22757365722f3c34323e2653c3b872656e222c22626574223a22626574e280a8e280a95c6e31227d"
+}

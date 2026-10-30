@@ -1,0 +1,75 @@
+{
+  "name": "@boostxinnovation/partner-sdk",
+  "version": "1.0.0",
+  "description": "BoostX partner SDK for JavaScript and TypeScript: Node.js, Cloudflare Workers and other Web Crypto runtimes",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/boostxinnovation/boostx-partner-sdk-js.git"
+  },
+  "homepage": "https://github.com/boostxinnovation/boostx-partner-sdk-js#readme",
+  "bugs": {
+    "email": "sdk@boostxinnovation.com"
+  },
+  "keywords": [
+    "boostx",
+    "partner",
+    "sdk",
+    "jwt",
+    "es256",
+    "cloudflare-workers"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "node": [
+        "./dist/node/index.d.ts"
+      ]
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./node": {
+      "types": "./dist/node/index.d.ts",
+      "default": "./dist/node/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:node": "vitest run --project node",
+    "test:workerd": "vitest run --project workerd",
+    "check:workerd": "npm run build && node scripts/check-workerd.mjs",
+    "check:spec": "node scripts/check-spec.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "1.4.9",
+    "@types/node": "22.20.5",
+    "miniflare": "5.20261023.1-beta",
+    "prettier": "3.9.6",
+    "typescript": "5.9.3",
+    "vitest": "4.1.12"
+  }
+}

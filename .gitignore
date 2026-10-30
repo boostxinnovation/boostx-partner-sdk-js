@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+*.tgz
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
