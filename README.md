@@ -7,7 +7,7 @@
 
 SDK for integrating with BoostX as a partner, for Node.js, Cloudflare Workers and other runtimes with Web Crypto.
 
-It implements the partner side of the BoostX contract: the `/set-boost`, `/check-bet` and `/verify-keys` endpoints, the five token types with the signed GID they carry, and the settlement client. It conforms to [boostx-partner-sdk-spec v1.0.0](https://github.com/boostxinnovation/boostx-partner-sdk-spec/tree/v1.0.0), the specification of how a BoostX partner SDK behaves. You do not need the spec to use the SDK: this README says what you must do yourself and which errors you will see, and links the spec's rule where you may want the exact behaviour. The partner docs at <https://docs.boostx.cloud>, open to partners BoostX has given access, describe the integration itself; this README links the page each step comes from.
+It implements the partner side of the BoostX contract: the `/set-boost`, `/check-bet` and `/verify-keys` endpoints, the five token types with the signed GID they carry, and the settlement client. It conforms to [boostx-partner-sdk-spec v1.1.0](https://github.com/boostxinnovation/boostx-partner-sdk-spec/tree/v1.1.0), the specification of how a BoostX partner SDK behaves. You do not need the spec to use the SDK: this README says what you must do yourself and which errors you will see, and links the spec's rule where you may want the exact behaviour. The partner docs at <https://docs.boostx.cloud>, open to partners BoostX has given access, describe the integration itself; this README links the page each step comes from.
 
 ## Installation
 
@@ -218,7 +218,7 @@ Error body (400): `{"error": "invalid verifyKeysJWT: <reason>"}`. Test integrati
 | `shape` | A malformed token (see [Token Format](#token-format)) or a claim of the wrong type |
 | `nonce-format` | A nonce that is not an integer in `[1, 2147483647]` |
 
-A token with several faults gets the reason of the first check it fails, in the handler's order ([HTTP-21](https://github.com/boostxinnovation/boostx-partner-sdk-spec/blob/v1.0.0/SPEC.md#http-21)): it reads the payload's format and claim types and looks up your BoostX public key before it verifies the token ([VERIFYKEYS-46](https://github.com/boostxinnovation/boostx-partner-sdk-spec/blob/v1.0.0/SPEC.md#verifykeys-46)), so a payload fault is `shape`, and an `aud` you do not serve `iss-aud`, even when the signature is bad too.
+A token with several faults gets the reason of the first check it fails, in the handler's order ([HTTP-21](https://github.com/boostxinnovation/boostx-partner-sdk-spec/blob/v1.1.0/SPEC.md#http-21)): it reads the payload's format and claim types and looks up your BoostX public key before it verifies the token ([VERIFYKEYS-46](https://github.com/boostxinnovation/boostx-partner-sdk-spec/blob/v1.1.0/SPEC.md#verifykeys-46)), so a payload fault is `shape`, and an `aud` you do not serve `iss-aud`, even when the signature is bad too.
 
 ### Answers
 
@@ -272,14 +272,14 @@ Every error the SDK raises is a `BoostxError` with a `code`:
 | `invalid_public_key` | A public key that cannot be loaded or cannot verify (not an ECDSA P-256 public key with the `verify` usage); a key list none of whose keys can verify, or an empty one; a key store holding no such public key for the partner ID. Keys are checked before the token, so this error points at your configuration whatever the token holds |
 | `invalid_booster` / `invalid_checkbet` | A Booster or CheckBet token that fails to parse or to verify; `cause` says why |
 | `invalid_verify_keys` | A verify-keys token that fails; `reason` carries its wire reason |
-| `invalid_gid` | A `gid` claim that is not four strings. Also in the `cause` chain, together with `invalid_signature`, when the GID signature is malformed ([INBOUND-25](https://github.com/boostxinnovation/boostx-partner-sdk-spec/blob/v1.0.0/SPEC.md#inbound-25)) or verifies under none of the partner public keys: that pair tells a GID failure from a token-signature failure |
+| `invalid_gid` | A `gid` claim that is not four strings. Also in the `cause` chain, together with `invalid_signature`, when the GID signature is malformed ([INBOUND-25](https://github.com/boostxinnovation/boostx-partner-sdk-spec/blob/v1.1.0/SPEC.md#inbound-25)) or verifies under none of the partner public keys: that pair tells a GID failure from a token-signature failure |
 | `invalid_signature` | A token or GID signature that does not verify or is malformed, a token whose header `alg` is not `ES256`, or one whose header carries `crit` |
 | `missing_claim` | A required value that is missing or empty |
 | `invalid_claim` | A value of the wrong type or out of range; a client option (`timeoutMs`, `baseURL`, `fetch`), or a missing key store or one without `partnerPrivateKey`, thrown by the `BoostxClient` constructor; a handler option, thrown by `createFetchHandler` or `createNodeHandler` |
 | `unknown_partner` | A key store that does not serve the partner ID |
 | `api_error` | Any answer to a settlement but BoostX's acceptance, `{"result": {"ok": true}}`: `BoostxAPIError` |
 
-A call with several faults fails with the first check in a fixed order: a signing function or a parser checks its key before anything else, and a parser checks a token's format and signature before its claims ([P-check-order](https://github.com/boostxinnovation/boostx-partner-sdk-spec/blob/v1.0.0/SPEC.md#p-check-order) links each function's order).
+A call with several faults fails with the first check in a fixed order: a signing function or a parser checks its key before anything else, and a parser checks a token's format and signature before its claims ([P-check-order](https://github.com/boostxinnovation/boostx-partner-sdk-spec/blob/v1.1.0/SPEC.md#p-check-order) links each function's order).
 
 A parser wraps the lower-level failure in `cause`, and `isBoostxError(err, code)` walks that chain, as Go's `errors.Is` does:
 
@@ -302,18 +302,19 @@ try {
 Some checks fire earlier than BoostX would:
 
 - **Ill-formed Unicode.** An id containing a lone surrogate, a partner ID given to a verify-keys creator included, is rejected with `invalid_claim`, and an inbound token carrying one is malformed ([Token Format](#token-format)). The partner docs require well-formed ids, and BoostX refuses a gamepass with such an id (`401`). `eventTitle` is only displayed and is not part of the GID, so each lone surrogate in it is sent as U+FFFD, the replacement character, instead.
+- **Ids.** `buildGID`, `createGamePassToken` and `createSettlementToken`, and so `submitSettlement`, reject a `partner`, `user` or `bet` that contains `:` or is longer than 32 (`partner`), 64 (`user`) or 96 (`bet`) code points with `invalid_claim` naming the id, before signing; a character outside the Basic Multilingual Plane, such as an emoji, counts as one. Only `:` itself is refused, not a look-alike such as the full-width `：`, and nothing is trimmed or normalised first. BoostX refuses a gamepass with such an id (`401`) ([Partner, user and bet ids](https://docs.boostx.cloud/gamepass/#partner-user-and-bet-ids)). The settlement builder refuses them too, so a settlement is only ever built for ids a gamepass can carry: such an id is a fault in your own code, and sending the settlement again does not clear it. Parsing an inbound token checks neither rule.
 - **Stake currency.** `createGamePassToken` rejects a `currency` that is not 3 or 4 uppercase letters with `invalid_claim`, as `createSettlementToken` does for the payout currency, and maps no case: `usd` fails before signing rather than when the game opens. That is the form the partner docs give `stake.currency` ([GamePassJWT](https://docs.boostx.cloud/gamepass/#gamepassjwt)).
-- **Inbound tokens.** A Booster token must carry `iat`, an integer `round` of at least `1`, a finite `boost` above `0`, and `final` and `jackpot` as JSON booleans; a CheckBet token must carry `iat`. BoostX always sends them, but a token you sign for an offline test must too, or it is refused with `missing_claim` or `invalid_claim` inside `invalid_booster` or `invalid_checkbet`. BoostX sends no `exp` or `nbf`; a token that carries one is held to it with no leeway ([KEYS-42](https://github.com/boostxinnovation/boostx-partner-sdk-spec/blob/v1.0.0/SPEC.md#keys-42)).
+- **Inbound tokens.** A Booster token must carry `iat`, an integer `round` of at least `1`, a finite `boost` above `0`, and `final` and `jackpot` as JSON booleans; a CheckBet token must carry `iat`. BoostX always sends them, but a token you sign for an offline test must too, or it is refused with `missing_claim` or `invalid_claim` inside `invalid_booster` or `invalid_checkbet`. BoostX sends no `exp` or `nbf`; a token that carries one is held to it with no leeway ([KEYS-42](https://github.com/boostxinnovation/boostx-partner-sdk-spec/blob/v1.1.0/SPEC.md#keys-42)).
 - **The partner ID `boostx`** is rejected by the verify-keys functions with `invalid_claim`, and a request addressed to it is answered `shape`: it would make a request's `iss` and `aud` the same as a response's.
 - **`floorX` and `playerX`** reject a `decimals` other than `2` to `6` (or unset, or `0`) and a non-finite input with `invalid_claim`.
 - **`settledAt`** is checked against your own clock, up to 24 hours ahead of it, as BoostX checks it against its own.
 - **An `x` of `0`** is rejected with `invalid_claim`: BoostX refuses it on the gamepass that starts a bet, but adopts it on a later entry, and the game then cannot be played.
 
-On the gamepass the SDK checks less than BoostX does, and leaves to BoostX the `[1.1, 200]` range of `x`, `xMin` and `xMax` and `xMin < xMax` (checked on the gamepass that starts a bet), whether BoostX serves the stake `currency`, and a `:` in `user` or `bet`, which you must keep out ([Partner, user and bet ids](https://docs.boostx.cloud/gamepass/#partner-user-and-bet-ids)).
+On the gamepass the SDK checks less than BoostX does, and leaves to BoostX the `[1.1, 200]` range of `x`, `xMin` and `xMax` and `xMin < xMax` (checked on the gamepass that starts a bet), and whether BoostX serves the stake `currency`.
 
 ### Token Format
 
-Every token the SDK parses is a compact JWS, read strictly: three canonical base64url segments, a header and a payload that are each one JSON object in strict UTF-8, and of the header only `alg`, which must be `ES256`, and `crit`, which is refused. BoostX's tokens always pass, so this matters for the tokens you sign in tests. A token that fails is malformed (`invalid_booster` or `invalid_checkbet`, `shape` on `/verify-keys`, `400` from the handlers), except that a wrong `alg`, a `crit`, or a signature segment that is not 64 bytes of canonical base64url is a signature failure (`invalid_signature`, `signature`). [KEYS-67](https://github.com/boostxinnovation/boostx-partner-sdk-spec/blob/v1.0.0/SPEC.md#keys-67) gives every rule and their order.
+Every token the SDK parses is a compact JWS, read strictly: three canonical base64url segments, a header and a payload that are each one JSON object in strict UTF-8, and of the header only `alg`, which must be `ES256`, and `crit`, which is refused. BoostX's tokens always pass, so this matters for the tokens you sign in tests. A token that fails is malformed (`invalid_booster` or `invalid_checkbet`, `shape` on `/verify-keys`, `400` from the handlers), except that a wrong `alg`, a `crit`, or a signature segment that is not 64 bytes of canonical base64url is a signature failure (`invalid_signature`, `signature`). [KEYS-67](https://github.com/boostxinnovation/boostx-partner-sdk-spec/blob/v1.1.0/SPEC.md#keys-67) gives every rule and their order.
 
 ## Advanced Usage
 
@@ -339,7 +340,7 @@ const publicKeyFromSecret = await loadPublicKeyFromPEM(env.BOOSTX_PUBLIC_KEY)
 - An encrypted key (`-----BEGIN ENCRYPTED PRIVATE KEY-----`, or an `EC PRIVATE KEY` with a `Proc-Type: 4,ENCRYPTED` header) is not supported: decrypt it first, e.g. with `openssl pkey -in encrypted.pem -out partner_private.pem`, which writes PKCS#8.
 - A loader takes a string or a `Uint8Array`. Anything else, and a key that fails to load, throws the role's key error (`invalid_private_key` or `invalid_public_key`), whose message says why, e.g. an encrypted key, a PEM block of another type, or an embedded public key that does not match the private key.
 
-The SDK checks the PEM and the key's structure itself, so a key loads or fails the same way on every runtime; the exact rules start at [KEYS-01](https://github.com/boostxinnovation/boostx-partner-sdk-spec/blob/v1.0.0/SPEC.md#keys-01).
+The SDK checks the PEM and the key's structure itself, so a key loads or fails the same way on every runtime; the exact rules start at [KEYS-01](https://github.com/boostxinnovation/boostx-partner-sdk-spec/blob/v1.1.0/SPEC.md#keys-01).
 
 The loaders return non-extractable Web Crypto `CryptoKey`s. Wherever the SDK takes a key, an ECDSA P-256 `CryptoKey` you imported yourself works too, e.g. from a JWK, provided it has the `sign` or `verify` usage its role needs.
 
@@ -369,7 +370,7 @@ Load the game URL in an iframe on your page ([Game URLs](https://docs.boostx.clo
 
 | Field | Required | Notes |
 |-------|----------|-------|
-| `partner`, `user`, `bet` | yes | Non-empty, without `:` in `user` or `bet` (bets whose ids differ only in where a `:` falls are treated as one bet; the SDK does not check this), and the same on every entry into a bet. `partner` is the ID BoostX assigned you (see [Submitting Settlements](#submitting-settlements)) |
+| `partner`, `user`, `bet` | yes | The same on every entry into a bet. Non-empty, without `:`, at most 32 (`partner`), 64 (`user`) or 96 (`bet`) code points, all checked before signing (see [Error Handling](#error-handling)). `partner` is the ID BoostX assigned you (see [Submitting Settlements](#submitting-settlements)) |
 | `amount` / `currency` | yes | The stake in major units, a finite number of at least `0.01` (BoostX refuses a smaller one), and a currency code BoostX serves, e.g. `USD` or `USDT`: confirm the codes you send during onboarding. The code must be 3 or 4 uppercase letters, checked before signing |
 | `x` | yes | Your own coefficient for the bet before the boost, sent as `xrange.init`. Finite and `> 0` |
 | `xMin`, `xMax` | no | Left out of the token when unset, `null` or `0`, and BoostX applies `1.1` and `200`. If your own limits cap X below `200`, set `xMax` |
@@ -387,7 +388,7 @@ BoostX refuses a gamepass that starts a bet unless `x`, `xMin` and `xMax` lie wi
 const x = playerX(xBase, booster.boost, decimals)
 ```
 
-`xBase` is the `x` of the gamepass of the entry that sends the round: after the player reopens the game on a new `x`, BoostX boosts that one, a regular or jackpot round sent again included. The one exception is a `final: true` regular round sent again, which keeps the `x` of the entry during which it was first sent ([Coefficient calculation](https://docs.boostx.cloud/rounds/#coefficient-calculation)). `decimals` is the bet's `xDecimals`; unset or `0` floors to the default `2`. With `xBase` `1.857`, `boost` `1.5` and two decimals, the player saw `2.27`, not the `2.28` that flooring only the result gives. `floorX(x, decimals)` is the flooring step alone. Both are checked against the spec's golden vectors for this rule ([GAMEPASS-38](https://github.com/boostxinnovation/boostx-partner-sdk-spec/blob/v1.0.0/SPEC.md#gamepass-38)). On a jackpot round that raises X, the X you derive is one step off the player's in very rare rounds (about one in 10¹³ with two decimals); a jackpot round that leaves X unchanged is exact ([Jackpot rounds](https://docs.boostx.cloud/rounds/#jackpot-rounds)).
+`xBase` is the `x` of the gamepass of the entry that sends the round: after the player reopens the game on a new `x`, BoostX boosts that one, a regular or jackpot round sent again included. The one exception is a `final: true` regular round sent again, which keeps the `x` of the entry during which it was first sent ([Coefficient calculation](https://docs.boostx.cloud/rounds/#coefficient-calculation)). `decimals` is the bet's `xDecimals`; unset or `0` floors to the default `2`. With `xBase` `1.857`, `boost` `1.5` and two decimals, the player saw `2.27`, not the `2.28` that flooring only the result gives. `floorX(x, decimals)` is the flooring step alone. Both are checked against the spec's golden vectors for this rule ([GAMEPASS-38](https://github.com/boostxinnovation/boostx-partner-sdk-spec/blob/v1.1.0/SPEC.md#gamepass-38)). On a jackpot round that raises X, the X you derive is one step off the player's in very rare rounds (about one in 10¹³ with two decimals); a jackpot round that leaves X unchanged is exact ([Jackpot rounds](https://docs.boostx.cloud/rounds/#jackpot-rounds)).
 
 ### Submitting Settlements
 
@@ -569,7 +570,7 @@ The handlers are built from functions you can call directly, for example in a ha
 
 There is no function to verify a gamepass of your own or a standalone GID: decode those with any JWT library, such as `jose`.
 
-`partnerPublicKeys` is one key or a list, as in a key store. `maxSkewSeconds` is `30` (`DEFAULT_VERIFY_KEYS_MAX_SKEW_SECONDS`) when left out, `null` or `0`; a fraction is cut to whole seconds, and a negative or non-finite value throws `invalid_claim`. A verify-keys parse resolves to the token's `iat` too, in Unix seconds; its check order is [VERIFYKEYS-46](https://github.com/boostxinnovation/boostx-partner-sdk-spec/blob/v1.0.0/SPEC.md#verifykeys-46). `BOOSTX_IDENTITY` is `boostx`, the `iss` of a request and the `aud` of a response.
+`partnerPublicKeys` is one key or a list, as in a key store. `maxSkewSeconds` is `30` (`DEFAULT_VERIFY_KEYS_MAX_SKEW_SECONDS`) when left out, `null` or `0`; a fraction is cut to whole seconds, and a negative or non-finite value throws `invalid_claim`. A verify-keys parse resolves to the token's `iat` too, in Unix seconds; its check order is [VERIFYKEYS-46](https://github.com/boostxinnovation/boostx-partner-sdk-spec/blob/v1.1.0/SPEC.md#verifykeys-46). `BOOSTX_IDENTITY` is `boostx`, the `iss` of a request and the `aud` of a response.
 
 `createVerifyKeysRequestToken` and `parseVerifyKeysResponseToken` are test aids. They apply the SDK's own rules, the ones in [POST /verify-keys](#post-verify-keys), and do not emulate BoostX; those rules are never more lenient than BoostX's, and stricter where they differ, so a response `parseVerifyKeysResponseToken` accepts is one BoostX would accept at the same moment.
 

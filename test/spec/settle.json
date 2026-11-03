@@ -1218,8 +1218,47 @@
 			"note": "Backdating is unrestricted down to the floor."
 		},
 		{
-			"name": "settle-create-ids-colon-and-whitespace",
+			"name": "settle-create-ids-whitespace",
 			"rules": ["SETTLE-12", "SETTLE-10"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u 1 ",
+					"bet": " b 2 3",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"settlement": {
+							"gid": {
+								"partner": "acme",
+								"user": "u 1 ",
+								"bet": " b 2 3"
+							},
+							"status": "win",
+							"payout": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"version": 1,
+							"settledAt": "${nowMs-60000}"
+						},
+						"iat": "${now}"
+					}
+				}
+			},
+			"note": "Whitespace in ids is not checked."
+		},
+		{
+			"name": "settle-create-ids-colon-refused",
+			"rules": ["SETTLE-12", "SETTLE-31"],
 			"op": "settlement.create",
 			"input": {
 				"params": {
@@ -1234,27 +1273,52 @@
 				}
 			},
 			"want": {
-				"ok": {
-					"payload": {
-						"settlement": {
-							"gid": {
-								"partner": "acme",
-								"user": "u:1 ",
-								"bet": " b:2:3"
-							},
-							"status": "win",
-							"payout": {
-								"amount": 12.5,
-								"currency": "USD"
-							},
-							"version": 1,
-							"settledAt": "${nowMs-60000}"
-						},
-						"iat": "${now}"
-					}
+				"error": ["invalid_claim"],
+				"field": "user"
+			},
+			"note": "Both user and bet hold ':'; user comes first in the check order."
+		},
+		{
+			"name": "settle-create-colon-partner-refused",
+			"rules": ["SETTLE-12"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "ac:me",
+					"user": "u-1",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
 				}
 			},
-			"note": "':' and whitespace in ids are not checked."
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "settle-create-colon-bet-refused",
+			"rules": ["SETTLE-12"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b:1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet"
+			}
 		},
 		{
 			"name": "settle-create-ids-escaped-characters",
@@ -1335,7 +1399,7 @@
 			"note": "A surrogate pair is well-formed Unicode."
 		},
 		{
-			"name": "settle-create-ids-long",
+			"name": "settle-create-ids-long-refused",
 			"rules": ["SETTLE-74"],
 			"op": "settlement.create",
 			"input": {
@@ -1351,13 +1415,35 @@
 				}
 			},
 			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet"
+			},
+			"note": "A bet of 4096 characters, far over its limit of 96."
+		},
+		{
+			"name": "settle-create-ids-at-limit",
+			"rules": ["SETTLE-74"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "pppppppppppppppppppppppppppppppp",
+					"user": "\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00",
+					"bet": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
 				"ok": {
 					"payload": {
 						"settlement": {
 							"gid": {
-								"partner": "acme",
-								"user": "u-1",
-								"bet": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+								"partner": "pppppppppppppppppppppppppppppppp",
+								"user": "\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00",
+								"bet": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 							},
 							"status": "win",
 							"payout": {
@@ -1370,8 +1456,28 @@
 						"iat": "${now}"
 					}
 				}
+			}
+		},
+		{
+			"name": "settle-create-user-over-limit-astral",
+			"rules": ["SETTLE-74"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00\ud83d\ude00",
+					"bet": "b-1",
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
 			},
-			"note": "No length limit applies to ids."
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "user"
+			}
 		},
 		{
 			"name": "settle-create-key-null",
@@ -3428,6 +3534,28 @@
 				"error": ["invalid_claim"],
 				"field": "user"
 			}
+		},
+		{
+			"name": "settle-create-order-colon-after-status",
+			"rules": ["SETTLE-31", "SETTLE-12"],
+			"op": "settlement.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u:1",
+					"bet": "b-1",
+					"status": "void",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "status"
+			},
+			"note": "The ':' check runs after every other parameter check."
 		},
 		{
 			"name": "settle-create-order-status-absent-before-amount-absent",
@@ -6892,6 +7020,29 @@
 					"bet": {
 						"$illFormed": "b-"
 					},
+					"status": "win",
+					"amount": 12.5,
+					"currency": "USD",
+					"version": 1,
+					"settledAt": "${nowMs-60000}"
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet",
+				"requests": 0,
+				"keyStoreCalled": true
+			}
+		},
+		{
+			"name": "settle-client-colon-refused",
+			"rules": ["SETTLE-31", "SETTLE-12"],
+			"op": "client.submit",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b:1",
 					"status": "win",
 					"amount": 12.5,
 					"currency": "USD",

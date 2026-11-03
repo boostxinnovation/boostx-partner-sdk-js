@@ -12,7 +12,7 @@ export function isCurrencyCode(s: unknown): s is string {
 	return typeof s === 'string' && /^[A-Z]{3,4}$/.test(s)
 }
 
-/** The id checks, run after the key and before any other field; `buildGID` repeats them, then checks well-formedness. */
+/** The id checks, run after the key and before any other field; `buildGID` repeats them, then its per-id checks. */
 export function requireIds(ids: { partner: unknown; user: unknown; bet: unknown }): void {
 	for (const name of ['partner', 'user', 'bet'] as const) checkId(name, ids[name])
 }

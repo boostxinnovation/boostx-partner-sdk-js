@@ -248,7 +248,7 @@
 			"note": "No Unicode normalization: the decomposed and the precomposed e-acute are signed as given."
 		},
 		{
-			"name": "gidgp-gid-build-colon-not-checked",
+			"name": "gidgp-gid-build-colon-refused",
 			"rules": ["GID-10", "GAMEPASS-07"],
 			"op": "gid.build",
 			"input": {
@@ -257,18 +257,160 @@
 				"bet": "b:1:2"
 			},
 			"want": {
-				"ok": {
-					"gid": {
-						"partner": "acme",
-						"user": "u:1",
-						"bet": "b:1:2"
-					},
-					"canonical": "{\"partner\":\"acme\",\"user\":\"u:1\",\"bet\":\"b:1:2\"}"
-				}
+				"error": ["invalid_claim"],
+				"field": "user"
+			},
+			"note": "Both user and bet hold ':'; user comes first in the check order."
+		},
+		{
+			"name": "gidgp-gid-build-colon-partner-alone",
+			"rules": ["GID-10", "GAMEPASS-07"],
+			"op": "gid.build",
+			"input": {
+				"partner": ":",
+				"user": "u-1",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partner"
 			}
 		},
 		{
-			"name": "gidgp-gid-build-long-id",
+			"name": "gidgp-gid-build-colon-partner-start",
+			"rules": ["GID-10", "GAMEPASS-07"],
+			"op": "gid.build",
+			"input": {
+				"partner": ":acme",
+				"user": "u-1",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-colon-partner-end",
+			"rules": ["GID-10", "GAMEPASS-07"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme:",
+				"user": "u-1",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-colon-user-alone",
+			"rules": ["GID-10", "GAMEPASS-07"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": ":",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-colon-user-start",
+			"rules": ["GID-10", "GAMEPASS-07"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": ":u",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-colon-user-end",
+			"rules": ["GID-10", "GAMEPASS-07"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "u:",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-colon-bet-alone",
+			"rules": ["GID-10", "GAMEPASS-07"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "u-1",
+				"bet": ":"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-colon-bet-start",
+			"rules": ["GID-10", "GAMEPASS-07"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "u-1",
+				"bet": ":b"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-colon-bet-end",
+			"rules": ["GID-10", "GAMEPASS-07"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "u-1",
+				"bet": "b:"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-fullwidth-colon-accepted",
+			"rules": ["GID-10", "GID-08"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "u：1",
+				"bet": "b-1"
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "acme",
+						"user": "u：1",
+						"bet": "b-1"
+					},
+					"canonical": "{\"partner\":\"acme\",\"user\":\"u：1\",\"bet\":\"b-1\"}"
+				}
+			},
+			"note": "U+FF1A FULLWIDTH COLON is an ordinary character: only U+003A is refused."
+		},
+		{
+			"name": "gidgp-gid-build-long-bet-refused",
 			"rules": ["GID-09"],
 			"op": "gid.build",
 			"input": {
@@ -277,16 +419,172 @@
 				"bet": "b-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 			},
 			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet"
+			},
+			"note": "A bet of 1026 characters, far over its limit of 96."
+		},
+		{
+			"name": "gidgp-gid-build-ids-at-limit",
+			"rules": ["GID-09"],
+			"op": "gid.build",
+			"input": {
+				"partner": "pppppppppppppppppppppppppppppppp",
+				"user": "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu",
+				"bet": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "pppppppppppppppppppppppppppppppp",
+						"user": "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu",
+						"bet": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+					},
+					"canonical": "{\"partner\":\"pppppppppppppppppppppppppppppppp\",\"user\":\"uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu\",\"bet\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"}"
+				}
+			},
+			"note": "Each id at its limit: 32, 64 and 96 characters."
+		},
+		{
+			"name": "gidgp-gid-build-ids-at-limit-astral",
+			"rules": ["GID-09", "GID-37"],
+			"op": "gid.build",
+			"input": {
+				"partner": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+				"user": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+				"bet": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+						"user": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+						"bet": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+					},
+					"canonical": "{\"partner\":\"😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\",\"user\":\"😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\",\"bet\":\"😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\"}"
+				}
+			},
+			"note": "Each id at its limit in U+1F600, which counts as one character though it is two UTF-16 code units and four UTF-8 bytes."
+		},
+		{
+			"name": "gidgp-gid-build-user-at-limit-mixed",
+			"rules": ["GID-09", "GID-37", "GID-03"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "éééééééééééééééé\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+				"bet": "b-1"
+			},
+			"want": {
 				"ok": {
 					"gid": {
 						"partner": "acme",
-						"user": "u-1",
-						"bet": "b-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+						"user": "éééééééééééééééé\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+						"bet": "b-1"
 					},
-					"canonical": "{\"partner\":\"acme\",\"user\":\"u-1\",\"bet\":\"b-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"}"
+					"canonical": "{\"partner\":\"acme\",\"user\":\"éééééééééééééééé\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\u2028\\u0001\\u0001\\u0001\\u0001\\u0001\\u0001\\u0001\\u0001\\u0001\\u0001\\u0001\\u0001\\u0001\\u0001\\u0001\\u0001😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\",\"bet\":\"b-1\"}"
 				}
 			},
-			"note": "No maximum id length."
+			"note": "64 characters, 16 each of U+00E9, U+2028, U+0001 and U+1F600. Each counts as one, U+0001 too, though the canonical text writes it as six characters."
+		},
+		{
+			"name": "gidgp-gid-build-partner-over-limit",
+			"rules": ["GID-09", "GAMEPASS-07"],
+			"op": "gid.build",
+			"input": {
+				"partner": "ppppppppppppppppppppppppppppppppp",
+				"user": "u-1",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-user-over-limit",
+			"rules": ["GID-09", "GAMEPASS-07"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-bet-over-limit",
+			"rules": ["GID-09", "GAMEPASS-07"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "u-1",
+				"bet": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-partner-over-limit-astral",
+			"rules": ["GID-09"],
+			"op": "gid.build",
+			"input": {
+				"partner": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+				"user": "u-1",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-user-over-limit-astral",
+			"rules": ["GID-09"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-bet-over-limit-astral",
+			"rules": ["GID-09"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "u-1",
+				"bet": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "gidgp-gid-build-user-over-limit-combining",
+			"rules": ["GID-09"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "ééééééééééééééééééééééééééééééééé",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "user"
+			},
+			"note": "33 times 'e' followed by U+0301: 33 grapheme clusters but 66 scalar values."
 		},
 		{
 			"name": "gidgp-gid-build-other-key",
@@ -653,6 +951,72 @@
 				"field": "bet"
 			},
 			"note": "The bet's type (step 2) is checked before the user's well-formedness (step 3). A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gid-build-order-partner-colon-before-user-ill-formed",
+			"rules": ["GAMEPASS-07", "KEYS-19"],
+			"needs": ["ill-formed-string"],
+			"op": "gid.build",
+			"input": {
+				"partner": "a:b",
+				"user": {
+					"$illFormed": "u-"
+				},
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partner"
+			},
+			"note": "Step 3 runs per id: partner's ':' check comes before user's well-formedness."
+		},
+		{
+			"name": "gidgp-gid-build-order-partner-length-before-user-ill-formed",
+			"rules": ["GAMEPASS-07", "KEYS-19"],
+			"needs": ["ill-formed-string"],
+			"op": "gid.build",
+			"input": {
+				"partner": "ppppppppppppppppppppppppppppppppp",
+				"user": {
+					"$illFormed": "u-"
+				},
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partner"
+			},
+			"note": "Step 3 runs per id: partner's length check comes before user's well-formedness."
+		},
+		{
+			"name": "gidgp-gid-build-order-partner-colon-before-user-length",
+			"rules": ["GAMEPASS-07", "KEYS-19"],
+			"op": "gid.build",
+			"input": {
+				"partner": "a:b",
+				"user": "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu",
+				"bet": "b-1"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partner"
+			},
+			"note": "Step 3 runs per id: partner's ':' check comes before user's length check."
+		},
+		{
+			"name": "gidgp-gid-build-order-user-length-before-bet-colon",
+			"rules": ["GAMEPASS-07", "KEYS-19"],
+			"op": "gid.build",
+			"input": {
+				"partner": "acme",
+				"user": "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu",
+				"bet": "b:1"
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "user"
+			},
+			"note": "Step 3 runs per id: user's length check comes before bet's ':' check."
 		},
 		{
 			"name": "gidgp-gamepass-minimal",
@@ -1163,13 +1527,13 @@
 			}
 		},
 		{
-			"name": "gidgp-gamepass-colon-and-whitespace-ids",
-			"rules": ["GAMEPASS-07", "GID-08", "GID-10"],
+			"name": "gidgp-gamepass-whitespace-ids",
+			"rules": ["GAMEPASS-07", "GID-08"],
 			"op": "gamepass.create",
 			"input": {
 				"params": {
 					"partner": "acme",
-					"user": "u:1",
+					"user": "u 1",
 					"bet": " ",
 					"amount": 12.5,
 					"currency": "USD",
@@ -1182,7 +1546,7 @@
 						"gamepass": {
 							"gid": {
 								"partner": "acme",
-								"user": "u:1",
+								"user": "u 1",
 								"bet": " "
 							},
 							"stake": {
@@ -1197,7 +1561,119 @@
 					}
 				}
 			},
-			"note": "':' and whitespace are not checked."
+			"note": "Whitespace is not checked."
+		},
+		{
+			"name": "gidgp-gamepass-colon-partner-refused",
+			"rules": ["GAMEPASS-07", "GID-10"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "ac:me",
+					"user": "u-1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "partner"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-colon-user-refused",
+			"rules": ["GAMEPASS-07", "GID-10"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u:1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "user"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-colon-bet-refused",
+			"rules": ["GAMEPASS-07", "GID-10"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "b:1",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet"
+			}
+		},
+		{
+			"name": "gidgp-gamepass-ids-at-limit",
+			"rules": ["GAMEPASS-07", "GID-09"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "pppppppppppppppppppppppppppppppp",
+					"user": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+					"bet": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"ok": {
+					"payload": {
+						"gamepass": {
+							"gid": {
+								"partner": "pppppppppppppppppppppppppppppppp",
+								"user": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+								"bet": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+							},
+							"stake": {
+								"amount": 12.5,
+								"currency": "USD"
+							},
+							"xrange": {
+								"init": 2.5
+							}
+						},
+						"iat": "${now}"
+					}
+				}
+			}
+		},
+		{
+			"name": "gidgp-gamepass-bet-over-limit",
+			"rules": ["GAMEPASS-07", "GID-09"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+					"amount": 12.5,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "bet"
+			}
 		},
 		{
 			"name": "gidgp-gamepass-currency-left-out",
@@ -3182,6 +3658,46 @@
 				"field": "bet"
 			},
 			"note": "A runner whose parameter types cannot hold this input skips the case (FORMAT section 7)."
+		},
+		{
+			"name": "gidgp-gamepass-order-colon-after-currency",
+			"rules": ["KEYS-19", "GAMEPASS-09"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u:1",
+					"bet": "b-1",
+					"amount": 12.5,
+					"currency": "usd",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "currency"
+			},
+			"note": "The ':' check runs after every other parameter check."
+		},
+		{
+			"name": "gidgp-gamepass-order-length-after-amount",
+			"rules": ["KEYS-19", "GAMEPASS-09"],
+			"op": "gamepass.create",
+			"input": {
+				"params": {
+					"partner": "acme",
+					"user": "u-1",
+					"bet": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+					"amount": 0,
+					"currency": "USD",
+					"x": 2.5
+				}
+			},
+			"want": {
+				"error": ["invalid_claim"],
+				"field": "amount"
+			},
+			"note": "The length check runs after every other parameter check."
 		},
 		{
 			"name": "gidgp-verify-accepted",

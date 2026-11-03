@@ -9,11 +9,14 @@ import { invalidClaim, isCurrencyCode, missingClaim, nonNegativeFinite, requireI
  * those ranges to BoostX.
  */
 export interface GamePassParams {
-	/** The partner id BoostX assigned you, the `gid.partner` of inbound tokens. */
+	/**
+	 * The partner id BoostX assigned you, the `gid.partner` of inbound tokens; no `:`, at most 32 code points; otherwise
+	 * refused before signing (`invalid_claim`).
+	 */
 	partner: string
-	/** Non-empty; keep `:` out of it (not checked). */
+	/** Non-empty, no `:`, at most 64 code points; otherwise refused before signing (`invalid_claim`). */
 	user: string
-	/** Non-empty; keep `:` out of it (not checked). */
+	/** Non-empty, no `:`, at most 96 code points; otherwise refused before signing (`invalid_claim`). */
 	bet: string
 	/** Stake in major units of `currency`; must be at least 0.01. */
 	amount: number

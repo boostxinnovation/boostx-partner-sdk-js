@@ -21,13 +21,23 @@ export function canonicalGIDPayload(partner: string, user: string, bet: string):
 	return JSON.stringify({ partner, user, bet })
 }
 
-/** Signs `{partner, user, bet}` with the partner private key. Checks the key, then the ids, then their Unicode. */
+/**
+ * Signs `{partner, user, bet}` with the partner private key. Checks the key, then the ids' presence, then per id:
+ * well-formed Unicode, no `:`, at most 32 (`partner`), 64 (`user`) or 96 (`bet`) code points.
+ */
 export async function buildGID(privateKey: CryptoKeyLike, partner: string, user: string, bet: string): Promise<GID> {
 	checkPrivateKey(privateKey)
 	requireIds({ partner, user, bet })
-	for (const [name, value] of Object.entries({ partner, user, bet })) {
+	for (const [name, value, max] of [
+		['partner', partner, 32],
+		['user', user, 64],
+		['bet', bet, 96],
+	] as const) {
 		// A lone surrogate cannot round-trip through JSON as the same string on every side.
 		if (!value.isWellFormed()) throw invalidClaim(`${name} is not well-formed Unicode`)
+		if (value.includes(':')) throw invalidClaim(`${name} contains ':'`)
+		// Code points, not UTF-16 units: an astral character counts as one.
+		if ([...value].length > max) throw invalidClaim(`${name} is longer than ${max} code points`)
 	}
 	let signature: ArrayBuffer
 	try {

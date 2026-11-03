@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.1.0
+
+### Changes
+- Conforms to [boostx-partner-sdk-spec v1.1.0](https://github.com/boostxinnovation/boostx-partner-sdk-spec/tree/v1.1.0), whose GID builders refuse an id that contains `:` or exceeds its length
+- `buildGID`, `createGamePassToken` and `createSettlementToken`, and so `BoostxClient.submitSettlement`, reject a `partner`, `user` or `bet` that contains `:` or is longer than 32 (`partner`), 64 (`user`) or 96 (`bet`) code points with `invalid_claim` naming the id, before signing and before anything is sent. A character outside the Basic Multilingual Plane counts as one, only `:` itself is refused, not a look-alike such as the full-width `：`, and nothing is trimmed or normalised first. Each id is checked for well-formed Unicode, then `:`, then length, before the next, and these checks still run after every other parameter check. BoostX refuses a gamepass with such an id (`401`), and the settlement builder refuses them too, so a settlement is only ever built for ids a gamepass can carry. Such an id is a fault in the calling code. Parsing an inbound token checks neither rule, so a Booster or CheckBet token whose `gid` carries such ids is still verified
+
 ## v1.0.0
 
 ### New Features

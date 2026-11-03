@@ -535,7 +535,7 @@
 					"key": "partner",
 					"partner": "acmé<&>",
 					"user": "u/\u2028",
-					"bet": "b-😀 :1"
+					"bet": "b-😀 1"
 				}
 			},
 			"want": {
@@ -543,7 +543,7 @@
 					"gid": {
 						"partner": "acmé<&>",
 						"user": "u/\u2028",
-						"bet": "b-😀 :1",
+						"bet": "b-😀 1",
 						"signature": "${sig:exotic}"
 					},
 					"round": 2,
@@ -553,7 +553,7 @@
 					"iat": "${now-100}"
 				}
 			},
-			"note": "Non-ASCII, a non-BMP character, U+2028, HTML characters, a slash, a space and a colon in the ids."
+			"note": "Non-ASCII, a non-BMP character, U+2028, HTML characters, a slash and a space in the ids."
 		},
 		{
 			"name": "inbound-booster-gid-escaped-surrogate-pair",
@@ -652,6 +652,70 @@
 				}
 			},
 			"note": "Only an empty gid.partner is refused; the GID is verified over the empty values."
+		},
+		{
+			"name": "inbound-booster-gid-colon-ids-verified",
+			"rules": ["GID-10", "INBOUND-20"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"ac:me\",\"user\":\"u:1\",\"bet\":\"b:1:2\",\"signature\":\"${sig:colon}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"colon": {
+					"key": "partner",
+					"text": "{\"partner\":\"ac:me\",\"user\":\"u:1\",\"bet\":\"b:1:2\"}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "ac:me",
+						"user": "u:1",
+						"bet": "b:1:2",
+						"signature": "${sig:colon}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "Parsing does not check ':' in an id: a game opened before the builders refused it keeps its gid."
+		},
+		{
+			"name": "inbound-booster-gid-long-ids-verified",
+			"rules": ["GID-09", "INBOUND-20"],
+			"op": "booster.parse",
+			"input": {
+				"token": {
+					"payload": "{\"booster\":{\"gid\":{\"partner\":\"ppppppppppppppppppppppppppppppppp\",\"user\":\"uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu\",\"bet\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"signature\":\"${sig:long}\"},\"round\":2,\"boost\":1.5,\"final\":false,\"jackpot\":false},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"long": {
+					"key": "partner",
+					"text": "{\"partner\":\"ppppppppppppppppppppppppppppppppp\",\"user\":\"uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu\",\"bet\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "ppppppppppppppppppppppppppppppppp",
+						"user": "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu",
+						"bet": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+						"signature": "${sig:long}"
+					},
+					"round": 2,
+					"boost": 1.5,
+					"final": false,
+					"jackpot": false,
+					"iat": "${now-100}"
+				}
+			},
+			"note": "Parsing does not check id length: a game opened before the builders refused it keeps its gid."
 		},
 		{
 			"name": "inbound-booster-gid-high-s-signature",
@@ -5245,6 +5309,34 @@
 			"want": {
 				"error": ["invalid_checkbet", "invalid_gid", "invalid_signature"]
 			}
+		},
+		{
+			"name": "inbound-checkbet-gid-colon-and-long-ids-verified",
+			"rules": ["GID-09", "GID-10"],
+			"op": "checkbet.parse",
+			"input": {
+				"token": {
+					"payload": "{\"checkbet\":{\"gid\":{\"partner\":\"ac:me\",\"user\":\"uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu\",\"bet\":\"b:1\",\"signature\":\"${sig:ids}\"}},\"iat\":${now-100}}"
+				}
+			},
+			"sigs": {
+				"ids": {
+					"key": "partner",
+					"text": "{\"partner\":\"ac:me\",\"user\":\"uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu\",\"bet\":\"b:1\"}"
+				}
+			},
+			"want": {
+				"ok": {
+					"gid": {
+						"partner": "ac:me",
+						"user": "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu",
+						"bet": "b:1",
+						"signature": "${sig:ids}"
+					},
+					"iat": "${now-100}"
+				}
+			},
+			"note": "Parsing a CheckBet checks neither ':' nor id length."
 		},
 		{
 			"name": "inbound-checkbet-order-gid-before-iat",
