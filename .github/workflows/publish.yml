@@ -55,8 +55,8 @@ jobs:
           tag="$(sed -n 's/^tag=//p' SPEC_VERSION)"
           commit="$(sed -n 's/^commit=//p' SPEC_VERSION)"
           version="v$(node -p 'require("./package.json").version')"
-          if [ "$tag" != "$version" ]; then
-            echo "::error::SPEC_VERSION names spec $tag, package.json is $version: an SDK carries its spec's version"
+          if [ "${tag%.*}" != "${version%.*}" ]; then
+            echo "::error::SPEC_VERSION names spec $tag, package.json is $version: an SDK carries its spec's major and minor version"
             exit 1
           fi
           git clone --depth 1 --branch "$tag" https://github.com/boostxinnovation/boostx-partner-sdk-spec "$RUNNER_TEMP/spec"
