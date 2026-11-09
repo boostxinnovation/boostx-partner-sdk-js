@@ -8,7 +8,7 @@ export interface Booster {
 	gid: GID
 	/** 1-indexed round counter, an integer >= 1. A replayed round repeats it. */
 	round: number
-	/** Finite and > 0: the accumulated boost factor on a regular round, back-solved on a jackpot round. */
+	/** Finite and > 0: the round's accumulated boost factor, a jackpot round's included. */
 	boost: number
 	/** True on the last round of the game. */
 	final: boolean
