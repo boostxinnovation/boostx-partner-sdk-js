@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.2.0
+
+### Documentation
+- Conforms to [boostx-partner-sdk-spec v1.2.0](https://github.com/boostxinnovation/boostx-partner-sdk-spec/tree/v1.2.0), whose version number this SDK now carries: the spec and both reference SDKs are released together under one number. Documentation only: no behaviour change
+- The README says that a jackpot round sent again carries the same `round` and `boost` and keeps the `x` of the entry during which BoostX fixed its result, normally the entry that first sent it, and that `playerX` on that `x` gives the X the player saw
+- The README links the spec's rules instead of the partner docs
+- The README and the type documentation describe `Booster.boost` in the spec's words
+
 ## v1.1.0
 
 ### Changes
